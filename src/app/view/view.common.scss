@@ -1,0 +1,58 @@
+$toolbar_background_color: #f7f7f7;
+$toolbar_border_color: #a7a7aa;
+$icon_color: #007aff;
+$icon_color_active: lighten( $icon_color, 30% );
+
+@mixin success {
+  color: #FFF;
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+} 
+
+@mixin success_active {
+  color: #fff;
+  background-color: #398439;
+  border-color: #255625;
+}
+
+@mixin primary {
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #2e6da4;
+}
+
+@mixin info {
+  color: #fff;
+  background-color: #31b0d5;
+  border-color: #1b6d85;
+}
+
+.input-group-addon.success { @include success; }
+.input-group-addon.primary { @include primary; }
+.input-group-addon.info    { @include info;    }
+ 
+.ui-toolbar {
+  background-color: $toolbar_background_color;
+  border-bottom: 1px solid $toolbar_border_color;
+}
+
+.ui-toolbar > * {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.ui-toolbar-btn {
+  display: table-cell;    
+  padding: 6px 12px;
+  font-weight: 400;
+  line-height: 1;
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+  color: #007aff;
+  font-size: x-large;
+}
+
+.ui-toolbar-btn:active {
+  color: $icon_color_active;
+}
