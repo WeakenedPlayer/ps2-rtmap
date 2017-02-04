@@ -3,7 +3,6 @@ import { Headers, Http } from '@angular/http';
 import { Observable } from 'rxjs';
 import 'rxjs/add/operator/toPromise';
 import * as ServiceId from './census-service-id';
-
 /* ############################################################################
  * 登録されたキャラクターの情報を一覧表示するためのクエリ(情報を一部省略する)
  * http://census.daybreakgames.com/<service_id>/get/ps2:v2/<query>
@@ -43,7 +42,8 @@ class JoinQuery {
     }
 }
 
-const CENSUS_URL = 'http://census.daybreakgames.com/s:' + ServiceId.CENSUS_SERVICE_ID + '/get/ps2:v2/';
+// 注意: https にすること。httpだとデプロイした時にNGになる場合があるので。
+const CENSUS_URL = 'https://census.daybreakgames.com/s:' + ServiceId.CENSUS_SERVICE_ID + '/get/ps2:v2/';
 @Injectable()
 export class CensusService {
     // プレイヤー情報、所属するアウトフィット情報の一部、オンライン状態を取得(一覧表示に使用)
@@ -64,7 +64,6 @@ export class CensusService {
     static searchCharacterNamesQuery( partialName: string ){
         return CENSUS_URL + 'character_name/?name.first_lower=^'+ partialName +'&c:limit=10';
     }
-    
     
     http: Http;
     constructor( http: Http ) {
