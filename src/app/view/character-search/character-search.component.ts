@@ -16,6 +16,7 @@ const CENSUS_API_LOWER_LIMIT = 3;
   styleUrls: ['./character-search.component.scss']
 })
 export class CharacterSearchComponent implements OnInit {
+    selectedCharacter: Census.CharacterName = null;
     candidates: Census.CharacterName[];
     characterFinder: Census.CharacterNameFinder;
     baseUrlProvider = new Census.UrlProvider();
@@ -41,12 +42,14 @@ export class CharacterSearchComponent implements OnInit {
             }
         });
     }
-    selectCharacter( id: string ) {
-        console.log( id );
+    selectCharacter( characterName: Census.CharacterName ) {
+        this.selectedCharacter = characterName;
+        console.log( characterName );
     }
     
     clear() {
         this.partialNameInput.setValue('');
+        this.selectedCharacter = null;
     }
 
     ngOnInit() {

@@ -6,7 +6,10 @@
 </div>
 </div>
 <div>
-<ul class="list-group ui-toolbar-list">
-<li *ngFor="let candidate of candidates" class="list-group-item" (click)="selectCharacter(candidate.character_id)">{{ candidate.name.first }}</li>
-</ul>
+<div class="list-group ui-toolbar-list">
+<a *ngFor="let candidate of candidates"
+    class="list-group-item"
+    [ngClass]="( selectedCharacter?.character_id === candidate?.character_id ) ? 'active' : ''" 
+    (click)="selectCharacter(candidate)">{{ candidate.name.first }}</a>
+</div>
 </div>
