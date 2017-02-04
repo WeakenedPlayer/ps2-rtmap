@@ -5,4 +5,8 @@
 <span class="glyphicon glyphicon-search ui-toolbar-btn"></span>
 </div>
 </div>
-
+<div>
+<ul>
+<li *ngFor="let candidate of candidates">{{ candidate.name.first }}</li>
+</ul>
+</div>

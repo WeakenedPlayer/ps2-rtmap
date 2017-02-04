@@ -24,7 +24,7 @@ class responses {
 })
 export class CharacterSearchComponent implements OnInit {
     census: CensusService;
-    candidates: responses;
+    candidates: characterName[];
     partialNameInput = new FormControl();
     testmap: Observable<any>;
     constructor( census: CensusService ) {
@@ -37,8 +37,11 @@ export class CharacterSearchComponent implements OnInit {
             if( partialName.length > 3 ){
                 this.census.findCharacterName( partialName.toLowerCase() )
                 .then( result => {
-                    this.candidates = result.json() as responses;
-                    console.log( this.candidates.character_name_list[0] );
+                    let tmp = ( result.json() as responses ).character_name_list;
+                    if( tmp ) {
+                        this.candidates = tmp;
+                        console.log( this.candidates[0] );
+                    }
                 } );
             }
         });
