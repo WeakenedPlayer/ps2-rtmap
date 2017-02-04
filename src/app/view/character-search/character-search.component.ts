@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Directive } from '@angular/core';
+import { Component, OnInit, Output } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import { FormGroup, FormControl } from '@angular/forms';
@@ -16,6 +16,7 @@ const CENSUS_API_LOWER_LIMIT = 3;
   styleUrls: ['./character-search.component.scss']
 })
 export class CharacterSearchComponent implements OnInit {
+    @Output() selectedCharacterId: string = '';
     selectedCharacter: Census.CharacterName = null;
     candidates: Census.CharacterName[];
     characterFinder: Census.CharacterNameFinder;
@@ -29,7 +30,7 @@ export class CharacterSearchComponent implements OnInit {
         .debounceTime(500)
         .distinctUntilChanged()
         .subscribe( partialName => {
-            // Census
+            // 500msは間隔をあけて、内容が変わっていたら入力された文字列でCensus APIに問い合わせる
             if( partialName.length >= CENSUS_API_LOWER_LIMIT ){
                 this.characterFinder.query( partialName.toLowerCase() )
                 .then( result => {
@@ -50,6 +51,12 @@ export class CharacterSearchComponent implements OnInit {
     clear() {
         this.partialNameInput.setValue('');
         this.selectedCharacter = null;
+        this.selectedCharacterId = '';
+    }
+    
+    characterFixed( id: string ) {
+        this.selectedCharacterId = id; 
+        console.log( id );
     }
 
     ngOnInit() {
