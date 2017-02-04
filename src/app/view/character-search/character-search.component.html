@@ -1,12 +1,12 @@
 <div class="row">
 <div class="input-group ui-toolbar">
 <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn"></span>
-<input type="text" class="form-control" [formControl]="partialNameInput">
-<span class="glyphicon glyphicon-search ui-toolbar-btn"></span>
+<input type="text" class="form-control" [formControl]="partialNameInput" placeholder="Your character name">
+<span class="glyphicon glyphicon-remove ui-toolbar-btn" (click)="clear()"></span>
 </div>
 </div>
 <div>
-<ul class="list-group">
-<li *ngFor="let candidate of candidates" class="list-group-item">{{ candidate.name.first }}</li>
+<ul class="list-group ui-toolbar-list">
+<li *ngFor="let candidate of candidates" class="list-group-item" (click)="selectCharacter(candidate.character_id)">{{ candidate.name.first }}</li>
 </ul>
 </div>

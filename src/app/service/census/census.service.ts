@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Headers, Http } from '@angular/http';
 import { Observable } from 'rxjs';
 import 'rxjs/add/operator/toPromise';
-import * as ServiceId from './census-service-id';
+import * as Census from './index';
 /* ############################################################################
  * 登録されたキャラクターの情報を一覧表示するためのクエリ(情報を一部省略する)
  * http://census.daybreakgames.com/<service_id>/get/ps2:v2/<query>
@@ -42,10 +42,11 @@ class JoinQuery {
     }
 }
 
+
 // 注意: https にすること。httpだとデプロイした時にNGになる場合があるので。
-const CENSUS_URL = 'https://census.daybreakgames.com/s:' + ServiceId.CENSUS_SERVICE_ID + '/get/ps2:v2/';
 @Injectable()
 export class CensusService {
+    /*
     // プレイヤー情報、所属するアウトフィット情報の一部、オンライン状態を取得(一覧表示に使用)
     static getCharacterInfoQuery( characterIdList: string[] ){
         let outfitQuery = new JoinQuery( 'outfit_member_extended' );
@@ -64,18 +65,28 @@ export class CensusService {
     static searchCharacterNamesQuery( partialName: string ){
         return CENSUS_URL + 'character_name/?name.first_lower=^'+ partialName +'&c:limit=10';
     }
-    
     http: Http;
+    base: BaseUrl.CensusBaseUrlProvider;
+    
     constructor( http: Http ) {
         this.http = http;
     }
-    
-    
-    
+
     findCharacterName( partialName: string ): Promise<any> {
+        let q = new commons.CharacterNameFinder( this.http, new CensusBaseUrlProvider() );
+        return q.query( partialName );
         console.log( CensusService.searchCharacterNamesQuery( partialName ) ); 
         return this.http.get( CensusService.searchCharacterNamesQuery( partialName ) )
-               .toPromise();
+               .toPromise().then( response => {
+                   let tmp = response.json() as { 'character_name_list': CharacterName[] };
+                   let res: CharacterName[] = [];
+                   if( tmp ) {
+                       res = tmp.character_name_list;
+                   }
+                   console.log( res );
+                   // characterName[] を受け取る関数に結果を渡す
+                   return new Promise<CharacterName[]>( resolve => { resolve( res ); } );
+               });
     }
     
     getCharactersGeneralInfo( characterIdList: string[], callback: (any) => void ): Promise<any> {
@@ -96,5 +107,6 @@ export class CensusService {
         console.error('An error occurred', error); // for demo purposes only
         return Promise.reject( error.message || error );
     }
+    */
 }
 
