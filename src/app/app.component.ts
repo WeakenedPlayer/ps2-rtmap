@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CensusService } from './service/census/census.service';
 
+import { FormControl } from '@angular/forms';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',

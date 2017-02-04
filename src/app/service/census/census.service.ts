@@ -70,14 +70,14 @@ export class CensusService {
     constructor( http: Http ) {
         this.http = http;
     }
-
-    findCharacterName( partialName: string, callback: (any) => void ): Promise<any> {
+    
+    
+    
+    findCharacterName( partialName: string ): Promise<any> {
         console.log( CensusService.searchCharacterNamesQuery( partialName ) ); 
-        return this.http.get( CensusService.searchCharacterNamesQuery( partialName ) ).toPromise()
-            .then( response => { callback( response.json() as any );  } )
-            .catch( this.handleError );
+        return this.http.get( CensusService.searchCharacterNamesQuery( partialName ) )
+               .toPromise();
     }
-
     
     getCharactersGeneralInfo( characterIdList: string[], callback: (any) => void ): Promise<any> {
         return this.http.get( CensusService.getCharacterOnlineStatusQuery( characterIdList ) )

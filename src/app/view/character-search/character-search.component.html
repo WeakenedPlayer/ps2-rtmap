@@ -1,11 +1,8 @@
 <div class="row">
 <div class="input-group ui-toolbar">
 <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn"></span>
-<input #characterName type="text" pattern="^[0-9A-Za-z]+$" class="form-control ui-textbox" placeholder="character name" (keyup)="search(characterName.value)">
+<input type="text" class="form-control" [formControl]="partialNameInput">
 <span class="glyphicon glyphicon-search ui-toolbar-btn"></span>
 </div>
 </div>
-<div>
-<ul>
-</ul>
-</div>
+

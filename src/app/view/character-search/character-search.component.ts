@@ -1,5 +1,21 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Directive } from '@angular/core';
 import { CensusService } from '../../service/census/census.service';
+import { Observable } from 'rxjs';
+import { FormGroup, FormControl } from '@angular/forms';
+import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/distinctUntilChanged';
+
+class characterName {
+    character_id: string;
+    name: {
+        first: string;
+        first_lower: string;
+    }
+}
+
+class responses {
+    character_name_list: characterName[];
+}
 
 @Component({
   selector: 'character-search',
@@ -7,20 +23,27 @@ import { CensusService } from '../../service/census/census.service';
   styleUrls: ['./character-search.component.scss']
 })
 export class CharacterSearchComponent implements OnInit {
-    @Input() characterName: string;
-    candidates: string[] = [];
     census: CensusService;
-    answer: any[] = [];
+    candidates: responses;
+    partialNameInput = new FormControl();
+    testmap: Observable<any>;
     constructor( census: CensusService ) {
         this.census = census;
+
+        this.partialNameInput.valueChanges
+        .debounceTime(1000)
+        .distinctUntilChanged()
+        .subscribe( partialName => {
+            if( partialName.length > 3 ){
+                this.census.findCharacterName( partialName.toLowerCase() )
+                .then( result => {
+                    this.candidates = result.json() as responses;
+                    console.log( this.candidates.character_name_list[0] );
+                } );
+            }
+        });
     }
 
     ngOnInit() {
-  }
-    search( name: string ) {
-        console.log( name );
-        if( name.length > 4 ){
-            this.census.findCharacterName( name.toLowerCase(), ( result ) => { this.answer = result; console.log( result ); }  );
-        }
     }
 }

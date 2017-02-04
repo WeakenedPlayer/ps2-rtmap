@@ -15,7 +15,7 @@ import { AppComponent } from './app.component';
     ViewModule,
     BrowserModule,
     FormsModule,
-    HttpModule
+    HttpModule,
   ],
   providers: [ CensusService ],
   bootstrap: [ AppComponent ]
