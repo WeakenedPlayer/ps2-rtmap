@@ -12,8 +12,7 @@ const CENSUS_API_LOWER_LIMIT = 3;
 
 @Component({
   selector: 'character-search',
-  templateUrl: './character-search.component.html',
-  styleUrls: ['./character-search.component.scss']
+  templateUrl: './character-search.component.html'
 })
 export class CharacterSearchComponent implements OnInit {
     @Output() selectedCharacterId: string = '';
