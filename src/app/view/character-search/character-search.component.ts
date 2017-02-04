@@ -1,4 +1,4 @@
-import { Component, OnInit, Output } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import { FormGroup, FormControl } from '@angular/forms';
@@ -12,19 +12,26 @@ const CENSUS_API_LOWER_LIMIT = 3;
 
 @Component({
   selector: 'character-search',
-  templateUrl: './character-search.component.html'
+  templateUrl: './character-search.component.html',
+  styleUrls: ['./character-search.component.scss']
 })
 export class CharacterSearchComponent implements OnInit {
-    @Output() selectedCharacterId: string = '';
-    selectedCharacter: Census.CharacterName = null;
+    @Output() onCharacterSelected = new EventEmitter<string>();
+    // 候補
     candidates: Census.CharacterName[];
-    characterFinder: Census.CharacterNameFinder;
-    baseUrlProvider = new Census.UrlProvider();
+    characterFinder: Census.CharacterNameGetter;
     
+    // 選択結果
+    selectedCharacterId: string = '';
+    selectedCharacter: Census.CharacterName = null;
+    
+    // 検索用
+    baseUrlProvider = new Census.UrlProvider();    
     partialNameInput = new FormControl();
-    testmap: Observable<any>;
+
+    profile: Census.CharacterProfileGetter;
     constructor( http: Http ) {
-        this.characterFinder = new Census.CharacterNameFinder( http, this.baseUrlProvider );
+        this.characterFinder = new Census.CharacterNameGetter( http, this.baseUrlProvider );
         this.partialNameInput.valueChanges
         .debounceTime(500)
         .distinctUntilChanged()
@@ -41,10 +48,12 @@ export class CharacterSearchComponent implements OnInit {
                 this.candidates = [];
             }
         });
+        
+        this.profile = new Census.CharacterProfileGetter( http, this.baseUrlProvider );
     }
     selectCharacter( characterName: Census.CharacterName ) {
         this.selectedCharacter = characterName;
-        console.log( characterName );
+        //console.log( characterName );
     }
     
     clear() {
@@ -54,8 +63,10 @@ export class CharacterSearchComponent implements OnInit {
     }
     
     characterFixed( id: string ) {
-        this.selectedCharacterId = id; 
-        console.log( id );
+        this.selectedCharacterId = id;
+        this.onCharacterSelected.emit( this.selectedCharacterId );
+        // console.log( id );
+        console.log( this.profile.queryUrl( id ) );
     }
 
     ngOnInit() {

@@ -16,7 +16,7 @@ export class CharacterName {
     }
 }
 
-export class CharacterNameFinder extends Common.QueryBase<string,CharacterNameList,CharacterName[]>{
+export class CharacterNameGetter extends Common.QueryBase<string,CharacterNameList,CharacterName[]>{
     maxCount: string;
     constructor( http: Http, baseProvider: Common.IBaseUrlProvider, maxCount = 5 ) {
         super( http, baseProvider );

@@ -13,4 +13,7 @@ export class AppComponent implements OnInit {
     
     ngOnInit() {
     }
+    characterSelected( event: any ){
+        console.log( event );
+    }
 }
