@@ -16,13 +16,11 @@ const CENSUS_API_LOWER_LIMIT = 3;
   styleUrls: ['./character-search.component.scss']
 })
 export class CharacterSearchComponent implements OnInit {
-    // @Output() onCharacterSelected = new EventEmitter<string>();
     // 候補
     candidates: Census.CharacterName[];
     characterFinder: Census.CharacterNameGetter;
     
     // 選択結果
-    //selectedCharacterId: string = '';
     selectedCharacter: Census.CharacterName = null;
     
     // 検索用
@@ -53,19 +51,12 @@ export class CharacterSearchComponent implements OnInit {
     }
     selectCharacter( characterName: Census.CharacterName ) {
         this.selectedCharacter = characterName;
-        //console.log( characterName );
     }
     
     clear() {
         this.partialNameInput.setValue('');
         this.selectedCharacter = null;
-     // this.selectedCharacterId = '';
     }
-    
-//    characterFixed( id: string ) {
-//        this.selectedCharacterId = id;
-//        this.onCharacterSelected.emit( this.selectedCharacterId );
-//    }
 
     ngOnInit() {
     }

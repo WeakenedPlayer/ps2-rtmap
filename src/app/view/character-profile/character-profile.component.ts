@@ -17,11 +17,13 @@ export class CharacterProfileComponent implements OnInit {
     _selectedCharacterId: string;
     profile: Census.CharacterProfile;
     onlineStatus: Census.CharacterOnlineStatus;
+    world: Census.World;
     
     // 検索用
     baseUrlProvider = new Census.UrlProvider();
     profileGetter: Census.CharacterProfileGetter;
     onlineStatusGetter: Census.CharacterOnlineStatusGetter;
+    worldGetter: Census.WorldGetter;
 
     @Input()
     set selectedCharacterId( newId: string ) {
@@ -46,13 +48,18 @@ export class CharacterProfileComponent implements OnInit {
         this.route.params
         .switchMap( ( params: Params ) => {
             // param が変わるたびに呼ばれるので、その度に CensusAPIに問い合わせる
-            console.log( this.profileGetter.queryUrl( params['id'] ) );
             return this.profileGetter.query( params['id'] );
         })
         .subscribe( profile => {
             // CensusAPIの問い合わせ結果を格納する
             this.profile = profile;
             console.log( profile );
+            
+            // サーバ名とオンライン状態は別途取得
+            /*
+            this.worldGetter.query( [ this.profile.world.world_id ] );
+            this.onlineStatusGetter.query( [ this.profile.character_id ] ); 
+            */
         });
     }
 }

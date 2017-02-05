@@ -1,39 +1,41 @@
 <div class="row">
 	<div class="input-group ui-toolbar">
     <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn"></span>
-    <span class="ui-toolbar-title">Character Info</span>
+    <span class="ui-toolbar-title">Request for identification</span>
 	</div>
 </div>
 <div class="row">
-<div class="panel panel-default">
-  <div class="panel-body">
-  <table class="table table-hover table-nonfluid"> 
-    <tbody>
-      <tr>
-        <td>Server</td>
-        <td>a</td>
-      </tr>
-      <tr>
-        <td>Faction</td>
-        <td>{{profile?.faction.name.en}}</td>
-      </tr>
-      <tr>
-        <td>Name</td>
-        <td>{{profile?.name.first}}</td>
-      </tr>
-      <tr>
-        <td>Battle Rank</td>
-        <td>{{profile?.battle_rank.value}}</td>
-      </tr>
-      <tr>
-        <td>Outfit</td>
-        <td>
-          <span *ngIf="profile?.outfit">[{{profile?.outfit.alias}}] {{profile?.outfit.name}}</span>
-          <span *ngIf="!profile?.outfit">Not a member of an outfit</span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<div class="panel panel-default ui-info-box">
+  <div class="panel-heading">Character Information</div>
+	  <table class="table table-nonfluid"> 
+	    <tbody>
+	      <tr>
+	        <td>Server</td>
+	        <td>a</td>
+	      </tr>
+	      <tr>
+	        <td>Faction</td>
+	        <td>{{profile?.faction.name.en}}</td>
+	      </tr>
+	      <tr>
+	        <td>Name</td>
+	        <td>{{profile?.name.first}}</td>
+	      </tr>
+	      <tr>
+	        <td>Battle Rank</td>
+	        <td>{{profile?.battle_rank.value}}</td>
+	      </tr>
+        <tr *ngIf="profile?.outfit">
+          <td>Outfit</td>
+          <td>[{{profile?.outfit.alias}}] {{profile?.outfit.name}}</td>
+        </tr>
+        <tr *ngIf="profile?.outfit">
+          <td>Outfit Rank</td>
+          <td>{{profile?.outfit.member_rank}}</td>
+        </tr>
+	    </tbody>
+	  </table>
   </div>
 </div>
+<div class="row">
 </div>
