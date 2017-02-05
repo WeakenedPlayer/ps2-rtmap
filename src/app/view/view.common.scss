@@ -34,6 +34,7 @@ $icon_color_active: lighten( $icon_color, 30% );
 .ui-toolbar {
   background-color: $toolbar_background_color;
   border-bottom: 1px solid $toolbar_border_color;
+  height: 48px;
 }
 
 .ui-toolbar > * {

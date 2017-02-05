@@ -8,6 +8,7 @@ import 'rxjs/add/operator/switchMap';
 import * as Census from '../../service/census';
 
 // TODO: ユーザの認証状態によって、この画面への遷移を禁止すること
+// TODO: データの取得部分が大きいので、再利用できそうなら分けて作り直す。
 
 @Component({
   selector: 'character-profile',
@@ -26,17 +27,6 @@ export class CharacterProfileComponent implements OnInit {
     onlineStatusGetter: Census.CharacterOnlineStatusGetter;
     worldGetter: Census.WorldGetter;
 
-    @Input()
-    set selectedCharacterId( newId: string ) {
-        this._selectedCharacterId = newId;
-        console.log( this.profileGetter.queryUrl( this._selectedCharacterId ) );
-        this.profileGetter.query( this._selectedCharacterId )
-        .then( result => {
-            this.profile = result;
-            // console.log( result );
-        } );
-    }
-    
     constructor(
             private http: Http,
             private route: ActivatedRoute,
