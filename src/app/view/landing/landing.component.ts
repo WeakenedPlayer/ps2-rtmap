@@ -10,15 +10,13 @@ import { Subscription } from 'rxjs';
 })
 export class LandingComponent implements OnInit, OnDestroy {
     authSubscriber: Subscription;
-    msg: string = 'test';
+    msg: string = 'n/a';
     constructor( private af: AngularFire ) {
-        console.log( this.af.auth );
         this.authSubscriber = this.af.auth.subscribe( auth => {
-            if( auth.auth ) {
-                console.log(auth.auth.uid);
-                this.msg = auth.auth.uid;
+            if( auth ) {
+                this.msg = 'login as ' + auth.auth.displayName;
             } else {
-                console.log( 'failed' );
+                this.msg = 'logout';
             }
         } );
     }
@@ -29,11 +27,10 @@ export class LandingComponent implements OnInit, OnDestroy {
 
     login() {
       this.af.auth.login();
-      console.log( this.af.auth );
     }
 
     logout() {
+        console.log( this.af );
        this.af.auth.logout();
-       console.log( this.af.auth );
     }
 }
