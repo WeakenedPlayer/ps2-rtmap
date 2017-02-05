@@ -34,6 +34,7 @@ $icon_color_active: lighten( $icon_color, 30% );
 .ui-toolbar {
   background-color: $toolbar_background_color;
   border-bottom: 1px solid $toolbar_border_color;
+  height: 48px;
 }
 
 .ui-toolbar > * {
@@ -55,4 +56,17 @@ $icon_color_active: lighten( $icon_color, 30% );
 
 .ui-toolbar-btn:active {
   color: $icon_color_active;
+}
+
+.ui-toolbar-title {
+  white-space: nowrap;
+  width: 1%;
+  line-height: 1;
+  margin: 0; 
+  padding: 6px 6px;
+  vertical-align: middle;
+}
+
+.ui-info-box {
+  margin: 6px;
 }

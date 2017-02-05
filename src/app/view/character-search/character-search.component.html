@@ -1,17 +1,20 @@
 <div class="row">
 	<div class="input-group ui-toolbar">
-    <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn"></span>
+    <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn" (click)="goBack()"></span>
     <input type="text" class="form-control" [formControl]="partialNameInput" placeholder="Your character name">
 		<span class="glyphicon glyphicon-remove ui-toolbar-btn" (click)="clear()"></span>
 	</div>
 </div>
-<ul class="list-group ui-toolbar-list">
+<div class="list-group ui-toolbar-list">
   <a *ngFor="let candidate of candidates"
       class="list-group-item"
       [ngClass]="( selectedCharacter?.character_id === candidate?.character_id ) ? 'active' : ''"
-		  (click)="selectCharacter(candidate)">{{ candidate.name.first }} 
-		<span *ngIf="selectedCharacter?.character_id === candidate?.character_id" class="badge" (click)="characterFixed(candidate.character_id)">
+		  (click)="selectCharacter(candidate)">{{ candidate.name.first }}
+		<!-- link to character profile -->
+		<a *ngIf="selectedCharacter?.character_id === candidate?.character_id"
+		    class="badge"
+		    [routerLink]="['/character/show/', candidate.character_id]">
 			<span class="glyphicon glyphicon-triangle-right"></span>
-    </span>
+    </a>
   </a>
-</ul>
+</div>

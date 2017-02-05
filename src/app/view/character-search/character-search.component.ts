@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import { FormGroup, FormControl } from '@angular/forms';
+import { Location } from '@angular/common';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
 
@@ -16,13 +17,11 @@ const CENSUS_API_LOWER_LIMIT = 3;
   styleUrls: ['./character-search.component.scss']
 })
 export class CharacterSearchComponent implements OnInit {
-    @Output() onCharacterSelected = new EventEmitter<string>();
     // 候補
     candidates: Census.CharacterName[];
     characterFinder: Census.CharacterNameGetter;
     
     // 選択結果
-    selectedCharacterId: string = '';
     selectedCharacter: Census.CharacterName = null;
     
     // 検索用
@@ -30,7 +29,7 @@ export class CharacterSearchComponent implements OnInit {
     partialNameInput = new FormControl();
 
     profile: Census.CharacterProfileGetter;
-    constructor( http: Http ) {
+    constructor( private http: Http, private location: Location ) {
         this.characterFinder = new Census.CharacterNameGetter( http, this.baseUrlProvider );
         this.partialNameInput.valueChanges
         .debounceTime(500)
@@ -53,22 +52,17 @@ export class CharacterSearchComponent implements OnInit {
     }
     selectCharacter( characterName: Census.CharacterName ) {
         this.selectedCharacter = characterName;
-        //console.log( characterName );
     }
     
     clear() {
         this.partialNameInput.setValue('');
         this.selectedCharacter = null;
-        this.selectedCharacterId = '';
-    }
-    
-    characterFixed( id: string ) {
-        this.selectedCharacterId = id;
-        this.onCharacterSelected.emit( this.selectedCharacterId );
-        // console.log( id );
-        console.log( this.profile.queryUrl( id ) );
     }
 
     ngOnInit() {
+    }
+    
+    goBack() {
+        this.location.back();
     }
 }
