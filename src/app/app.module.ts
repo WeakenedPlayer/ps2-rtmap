@@ -5,6 +5,21 @@ import { HttpModule } from '@angular/http';
 
 import { ViewModule } from './view/view.module';
 import { AppComponent } from './app.component';
+import { AngularFireModule, AuthProviders, AuthMethods } from 'angularfire2';
+
+const firebaseConfig = {
+        apiKey: "AIzaSyDGS2xVjmK_q5HtLfOg5TztHz_Ftu00bQ8",
+        authDomain: "ps2-rtmap-pts.firebaseapp.com",
+        databaseURL: "https://ps2-rtmap-pts.firebaseio.com",
+        storageBucket: "ps2-rtmap-pts.appspot.com",
+        messagingSenderId: "1048696211507"
+      };
+
+
+const firebaseAuthConfig = {
+        provider: AuthProviders.Google,
+        method: AuthMethods.Redirect
+};
 
 @NgModule({
   declarations: [
@@ -15,6 +30,7 @@ import { AppComponent } from './app.component';
     BrowserModule,
     FormsModule,
     HttpModule,
+    AngularFireModule.initializeApp( firebaseConfig, firebaseAuthConfig )
   ],
   providers: [ ],
   bootstrap: [ AppComponent ]
