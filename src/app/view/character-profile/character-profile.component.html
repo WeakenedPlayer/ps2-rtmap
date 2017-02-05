@@ -1,17 +1,20 @@
 <div class="row">
 	<div class="input-group ui-toolbar">
-    <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn"></span>
-    <span class="ui-toolbar-title">Request for identification</span>
+    <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn" (click)="goBack()"></span>
+    <span class="ui-toolbar-title">Confirmation</span>
 	</div>
 </div>
 <div class="row">
-<div class="panel panel-default ui-info-box">
-  <div class="panel-heading">Character Information</div>
-	  <table class="table table-nonfluid"> 
+	<div class="panel panel-default ui-info-box">
+	  <div class="panel-heading">Character Information</div>
+	  <table class="table table-nonfluid" *ngIf="profile"> 
 	    <tbody>
 	      <tr>
-	        <td>Server</td>
-	        <td>a</td>
+	        <td>World</td>
+          <td>
+            <span *ngIf="world">{{world?.name.en}}</span>
+            <span *ngIf="!world">n/a</span>
+          </td>
 	      </tr>
 	      <tr>
 	        <td>Faction</td>
@@ -21,21 +24,42 @@
 	        <td>Name</td>
 	        <td>{{profile?.name.first}}</td>
 	      </tr>
-	      <tr>
-	        <td>Battle Rank</td>
-	        <td>{{profile?.battle_rank.value}}</td>
-	      </tr>
-        <tr *ngIf="profile?.outfit">
-          <td>Outfit</td>
+        <tr>
+          <td>Battle Rank</td>
+          <td>{{profile?.battle_rank.value}}</td>
+        </tr>
+        <tr>
+          <td>Online Status</td>
+          <td *ngIf="onlineStatus">
+            <span [ngSwitch]="onlineStatus.online_status">
+              <span *ngSwitchCase="0" class="warning">Offline</span>
+              <span *ngSwitchCase="1" class="success">Online</span>
+            </span>
+          </td>
+          <td *ngIf="!onlineStatus">
+            <span>n/a</span>
+          </td>
+        </tr>
+        <tr *ngIf="profile?.outfit" >
+          <td>Outfit Name</td>
           <td>[{{profile?.outfit.alias}}] {{profile?.outfit.name}}</td>
         </tr>
-        <tr *ngIf="profile?.outfit">
+        <tr *ngIf="profile?.outfit" >
           <td>Outfit Rank</td>
           <td>{{profile?.outfit.member_rank}}</td>
         </tr>
 	    </tbody>
 	  </table>
+	  <p *ngIf="!profile">loading</p>
   </div>
 </div>
+
 <div class="row">
+  <div class="col-md-12">
+    <div class="btn-group btn-group-justified" role="group">
+		  <div class="btn-group" role="group">
+		    <button type="button" class="btn btn-default">Select this character</button>
+		  </div>
+    </div>
+  </div>
 </div>

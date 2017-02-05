@@ -13,13 +13,12 @@ export class CharacterOnlineStatus {
 }
 
 export class CharacterOnlineStatusGetter extends Common.QueryBase<string[],CharacterProfileList,CharacterOnlineStatus[]>{
-    joinQuery: string;
     constructor( http: Http, baseProvider: Common.IBaseUrlProvider ) {
         super( http, baseProvider );
     }
     
     queryUrl( characterIds: string[] ): string {
-        return 'characters_online_status?character_id='+ characterIds.join(',') + this.joinQuery;
+        return 'characters_online_status?character_id='+ characterIds.join(',');
     }
     extract( response: CharacterProfileList ): CharacterOnlineStatus[] {
         return response.characters_online_status_list;

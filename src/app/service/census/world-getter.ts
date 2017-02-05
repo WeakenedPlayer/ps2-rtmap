@@ -17,14 +17,14 @@ export class World {
 }
 
 export class WorldGetter extends Common.QueryBase<string[],WorldList,World[]>{
-    joinQuery: string;
     constructor( http: Http, baseProvider: Common.IBaseUrlProvider ) {
         super( http, baseProvider );
     }
     
     queryUrl( characterIds: string[] ): string {
-        return 'world?world_id='+ characterIds.join(',') + this.joinQuery;
+        return 'world?world_id='+ characterIds.join(',');
     }
+    
     extract( response: WorldList ): World[] {
         return response.world_list;
     }
