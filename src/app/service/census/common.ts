@@ -2,6 +2,11 @@ import { Observable } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import 'rxjs/add/operator/toPromise';
 
+class ServiceErrorResponse {
+    // no data fournd, service unavailable etc...
+    error: string;
+}
+
 // Census APIとのやり取りの共通部分を担う基底クラス
 export abstract class QueryBase<ParameterT,ResponseT,ResultT> {
     http: Http;
@@ -19,19 +24,18 @@ export abstract class QueryBase<ParameterT,ResponseT,ResultT> {
             .toPromise()
             .then( jsonResponse => {
                 // JSON -> Object -> ResponseTにCast
-                let objectResponse = jsonResponse.json();
-                let response = ( objectResponse as ResponseT );
-
+                let response = jsonResponse.json();
+                
                 // console.log( response );
                 return new Promise<ResultT>( ( resolve, reject ) => {
-                    // 何らかの理由でエラーなら result === undefined になっている
-                    if( response ){
-                        // 正常応答時の処理
-                        let result = this.extract( response );
-                        resolve( result );
-                    } else {
+                    // 何らかの理由でエラーなら errorメンバーを含むはず                    
+                    if( response.error ){
                         // 異常応答時の処理
-                        reject( objectResponse );
+                        reject( response );
+                    } else {
+                        // 正常応答時の処理
+                        let result = this.extract( response as ResponseT );
+                        resolve( result );
                     }
                 } );
         });

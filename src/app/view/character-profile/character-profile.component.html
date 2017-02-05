@@ -1,18 +1,39 @@
 <div class="row">
 	<div class="input-group ui-toolbar">
     <span class="glyphicon glyphicon-chevron-left ui-toolbar-btn"></span>
-    <span>Character Info</span>
-		<span class="glyphicon glyphicon-remove ui-toolbar-btn" (click)="clear()"></span>
+    <span class="ui-toolbar-title">Character Info</span>
 	</div>
 </div>
-
-<ul class="list-group ui-toolbar-list">
-  <a *ngFor="let candidate of candidates"
-      class="list-group-item"
-      [ngClass]="( selectedCharacter?.character_id === candidate?.character_id ) ? 'active' : ''"
-		  (click)="selectCharacter(candidate)">{{ candidate.name.first }} 
-		<span *ngIf="selectedCharacter?.character_id === candidate?.character_id" class="badge" (click)="characterFixed(candidate.character_id)">
-			<span class="glyphicon glyphicon-triangle-right"></span>
-    </span>
-  </a>
-</ul>
+<div class="row">
+<div class="panel panel-default">
+  <div class="panel-body">
+  <table class="table table-hover table-nonfluid"> 
+    <tbody>
+      <tr>
+        <td>Server</td>
+        <td>a</td>
+      </tr>
+      <tr>
+        <td>Faction</td>
+        <td>{{profile?.faction.name.en}}</td>
+      </tr>
+      <tr>
+        <td>Name</td>
+        <td>{{profile?.name.first}}</td>
+      </tr>
+      <tr>
+        <td>Battle Rank</td>
+        <td>{{profile?.battle_rank.value}}</td>
+      </tr>
+      <tr>
+        <td>Outfit</td>
+        <td>
+          <span *ngIf="profile?.outfit">[{{profile?.outfit.alias}}] {{profile?.outfit.name}}</span>
+          <span *ngIf="!profile?.outfit">Not a member of an outfit</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>

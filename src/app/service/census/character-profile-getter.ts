@@ -31,7 +31,11 @@ export class CharacterProfile {
         image_path: string;
         code_tag: string;
     };
+    world: {
+        world_id: string;
+    }
 }
+
 export class CharacterProfileGetter extends Common.QueryBase<string,CharacterProfileList,CharacterProfile>{
     joinQuery: string;
     constructor( http: Http, baseProvider: Common.IBaseUrlProvider ) {
@@ -41,7 +45,9 @@ export class CharacterProfileGetter extends Common.QueryBase<string,CharacterPro
             outfitQuery.inject_at = 'outfit';
         let onlineQuery = new Common.JoinQuery( 'faction' );
             onlineQuery.inject_at = 'faction';
-        this.joinQuery = '&' + outfitQuery.toString() + '&' + onlineQuery.toString();
+        let worldQuery = new Common.JoinQuery( 'characters_world' );
+            worldQuery.inject_at = 'world';
+        this.joinQuery = '&' + outfitQuery.toString() + '&' + onlineQuery.toString() + '&' + worldQuery.toString();
     }
     
     queryUrl( characterId: string ): string {
