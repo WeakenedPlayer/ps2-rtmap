@@ -36,7 +36,7 @@ export class CharacterProfile {
     }
 }
 
-export class CharacterProfileGetter extends Common.QueryBase<string,CharacterProfileList,CharacterProfile>{
+export class CharacterProfileGetter extends Common.QueryBase<string[],CharacterProfileList,CharacterProfile[]>{
     joinQuery: string;
     constructor( http: Http, baseProvider: Common.IBaseUrlProvider ) {
         super( http, baseProvider );
@@ -50,10 +50,10 @@ export class CharacterProfileGetter extends Common.QueryBase<string,CharacterPro
         this.joinQuery = '&' + outfitQuery.toString() + '&' + onlineQuery.toString() + '&' + worldQuery.toString();
     }
     
-    queryUrl( characterId: string ): string {
-        return 'character?character_id='+ characterId + this.joinQuery;
+    queryUrl( characterIds: string[] ): string {
+        return 'character?character_id='+ characterIds.join(',') + this.joinQuery;
     }
-    extract( response: CharacterProfileList ): CharacterProfile {
-        return response.character_list[0];
+    extract( response: CharacterProfileList ): CharacterProfile[] {
+        return response.character_list;
     }
 }

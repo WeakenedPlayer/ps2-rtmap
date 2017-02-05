@@ -41,14 +41,14 @@ export class CharacterProfileComponent implements OnInit {
         this.route.params
         .switchMap( ( params: Params ) => {
             // param が変わるたびに呼ばれるので、その度に CensusAPIに問い合わせる
-            return this.profileGetter.query( params['id'] );
+            let characterId: string = params['id'];
+            return this.profileGetter.query( [ characterId ] );
         })
-        .subscribe( profile => {
+        .subscribe( profiles => {
             // CensusAPIの問い合わせ結果を格納する
-            // console.log( profile );
-            this.profile = profile;
-            
-            if( profile ) {
+            // 結果が取得できていれば以降の処理を継続
+            if( profiles ) {
+                this.profile = profiles[0];
                 // サーバ名とオンライン状態は別途取得
                 this.worldGetter.query( [ this.profile.world.world_id ] )
                 .then( world => { 
