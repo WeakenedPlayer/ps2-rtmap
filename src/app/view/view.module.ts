@@ -5,6 +5,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 import { CharacterSearchComponent } from './character-search/character-search.component';
 import { CharacterProfileComponent } from './character-profile/character-profile.component';
+import { LandingComponent } from './landing/landing.component';
+import { NotFoundComponent } from './not-found/not-found.component';
 
 // このモジュールは、Routerで各ビューをつなぐ役割をになう
 // より複雑になってきたら、forRootを外部に持ち、ここではforChildだけつくることにする。
@@ -14,16 +16,18 @@ import { CharacterProfileComponent } from './character-profile/character-profile
 // http://stackoverflow.com/questions/35284988/angular-2-404-error-occur-when-i-refresh-through-browser
 
 const routes: Routes = [
-                        { path: '', redirectTo: 'character/search', pathMatch: 'full' },
+                        { path: 'landing',  component: LandingComponent },
                         { path: 'character/search',  component: CharacterSearchComponent },
-                        { path: 'character/show/:id', component: CharacterProfileComponent }
+                        { path: 'character/show/:id', component: CharacterProfileComponent },
+                        { path: '',   redirectTo: '/landing', pathMatch: 'full' },
+                        { path: '**', component: NotFoundComponent }
                       ];
 @NgModule({
-  declarations: [ CharacterSearchComponent, CharacterProfileComponent ],
+  declarations: [ CharacterSearchComponent, CharacterProfileComponent, LandingComponent, NotFoundComponent ],
   imports: [ BrowserModule,
              ReactiveFormsModule,
              RouterModule.forRoot(routes)],
-  exports: [ RouterModule, CharacterSearchComponent, CharacterProfileComponent ],
+  exports: [ RouterModule, CharacterSearchComponent, CharacterProfileComponent, LandingComponent, NotFoundComponent ],
   providers: [ {provide: LocationStrategy, useClass: HashLocationStrategy} ]
 })
 export class ViewModule { }
