@@ -3,36 +3,51 @@ import { Observable } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import * as Common from './common';
 
-
 class CharacterProfileList {
-    character_name_list: CharacterProfile[];
+    character_list: CharacterProfile[];
 }
 
+/* CensusAPI が返してくる応答の一部 */
 export class CharacterProfile {
     character_id: string;
     name: {
         first: string;
         first_lower: string;
-    }
+    };
+    battle_rank: {
+        percent_to_next: number;
+        value: number;
+    };
+    outfit: {
+        member_rank: string;
+        name: string;
+        alias: string;
+    };
+    faction: {
+        faction_id: number;
+        name: {
+          en: string;
+        };
+        image_path: string;
+        code_tag: string;
+    };
 }
-
-export class CharacterProfileGetter extends Common.QueryBase<string,CharacterProfileList,CharacterProfile[]>{
+export class CharacterProfileGetter extends Common.QueryBase<string,CharacterProfileList,CharacterProfile>{
     joinQuery: string;
     constructor( http: Http, baseProvider: Common.IBaseUrlProvider ) {
         super( http, baseProvider );
         let outfitQuery = new Common.JoinQuery( 'outfit_member_extended' );
-            outfitQuery.show = [ 'alias', 'member_rank' ];
+            outfitQuery.show = [ 'name', 'alias', 'member_rank' ];
             outfitQuery.inject_at = 'outfit';
-        let onlineQuery = new Common.JoinQuery( 'characters_online_status' );
-            onlineQuery.inject_at = 'online';
+        let onlineQuery = new Common.JoinQuery( 'faction' );
+            onlineQuery.inject_at = 'faction';
         this.joinQuery = '&' + outfitQuery.toString() + '&' + onlineQuery.toString();
     }
     
     queryUrl( characterId: string ): string {
-        console.log( 'character?character_id='+ characterId + this.joinQuery );
         return 'character?character_id='+ characterId + this.joinQuery;
     }
-    extract( response: CharacterProfileList ): CharacterProfile[] {
-        return response.character_name_list;
+    extract( response: CharacterProfileList ): CharacterProfile {
+        return response.character_list[0];
     }
 }

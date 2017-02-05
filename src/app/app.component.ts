@@ -8,12 +8,14 @@ import { FormControl } from '@angular/forms';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
+    selectedId: string;
     constructor() {
     }
     
     ngOnInit() {
     }
-    characterSelected( event: any ){
-        console.log( event );
+    characterSelected( id: string ){
+        console.log( id );
+        this.selectedId = id;
     }
 }
