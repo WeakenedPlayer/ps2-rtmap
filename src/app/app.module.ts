@@ -6,7 +6,7 @@ import { HttpModule } from '@angular/http';
 import { ViewModule } from './view/view.module';
 import { AppComponent } from './app.component';
 import { AngularFireModule, AuthProviders, AuthMethods } from 'angularfire2';
-
+import { AlertModule } from 'ng2-bootstrap';
 const firebaseConfig = {
         apiKey: "AIzaSyDGS2xVjmK_q5HtLfOg5TztHz_Ftu00bQ8",
         authDomain: "ps2-rtmap-pts.firebaseapp.com",
@@ -20,7 +20,6 @@ const firebaseAuthConfig = {
         provider: AuthProviders.Google,
         method: AuthMethods.Redirect
 };
-
 @NgModule({
   declarations: [
     AppComponent
@@ -29,7 +28,7 @@ const firebaseAuthConfig = {
     ViewModule,
     BrowserModule,
     FormsModule,
-    HttpModule,
+    HttpModule,AlertModule.forRoot(),
     AngularFireModule.initializeApp( firebaseConfig, firebaseAuthConfig )
   ],
   providers: [ ],
