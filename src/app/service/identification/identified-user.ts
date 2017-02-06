@@ -2,10 +2,11 @@ import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, Angular
 import * as firebase from 'firebase';       // required for timestamp
 import { Subscription, Observable } from 'rxjs';
 import * as UserIdentification from './common'; 
+import * as Session from './session'; 
 
 export class IdentifiedUserInfo {
     static CreateSendData( identifierUid: string ) {
-        return { 'by': identifierUid, 'ts': firebase.database.ServerValue.TIMESTAMP };
+        return { 'confirmedBy': identifierUid, 'confirmedAt': firebase.database.ServerValue.TIMESTAMP };
     }
     static FromReceivedData( any ) {
         return new IdentifiedUserInfo( any.$key, any.$value.by, any.$value.ts );
@@ -22,30 +23,34 @@ export class IdentifiedUserRepository {
             return tmp;
         }
     }
-    obs: FirebaseListObservable<any>;
-    constructor( private identifierUid: string,private af: AngularFire ) {
-        this.obs = af.database.list( UserIdentification.URL_BASE + IdentifiedUserRepository.url() );
+
+    constructor( private identifierUid: string,private af: AngularFire ) {}
+
+    getIdentifiedUserObserver( uid: string): FirebaseObjectObservable<IdentifiedUserInfo> {
+        return this.af.database.object( IdentifiedUserRepository.url( uid ) );
     }
     
-    getAllIdentifiedUser(): Observable<any> { return this.obs; }
+    getAllIdentifiedUserObserver(): FirebaseListObservable<IdentifiedUserInfo[]> {
+        return this.af.database.list( IdentifiedUserRepository.url() );
+    }
     
-    registerUser( applicantUid: string ): Promise<void> {
+    registerUser( identifiedUser: string ): Promise<void> {
         return new Promise( ( resolve, reject ) => {
-            if( applicantUid ) {
-                resolve( this.af.database.object( IdentifiedUserRepository.url( applicantUid ) )
+            if( identifiedUser ) {
+                resolve( this.af.database.object( IdentifiedUserRepository.url( identifiedUser ) )
                                          .update( IdentifiedUserInfo.CreateSendData( this.identifierUid ) ));
             } else {
-                reject( 'no applicant uid specified' );
+                reject( 'no uid specified' );
             }
         } );
     }
     
-    unregisterUser( applicantUid: string ): Promise<void> {
+    unRegisterUser( identifiedUid : string ): Promise<void> {
         return new Promise( ( resolve, reject ) => {
-            if( applicantUid ) {
-                resolve( this.af.database.object( IdentifiedUserRepository.url( applicantUid ) ).remove() );
+            if( identifiedUid ) {
+                resolve( this.af.database.object( IdentifiedUserRepository.url( identifiedUid ) ).remove() );
             } else {
-                reject( 'no applicant uid specified' );
+                reject( 'no uid specified' );
             }
         } );
     }

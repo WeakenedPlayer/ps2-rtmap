@@ -2,7 +2,7 @@ import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, Angular
 import * as firebase from 'firebase';       // required for timestamp
 import { Subscription, Observable } from 'rxjs';
 import * as UserIdentification from './common'; 
-import * as Application from './application'; 
+import * as IdentificationRequest from './request'; 
 
 export class SessionAcceptance {
     static CreateSendData( cid: string, appliedAt: number ) {
@@ -42,12 +42,12 @@ export class SessionRepository {
     
     constructor( private uid: string,private af: AngularFire ) {}
     
-    acceptApplication( appData: Application.ApplicationData ) {
-        this.af.database.object( SessionRepository.acceptanceUrl( this.uid, appData.$key ) )
-            .set( SessionAcceptance.CreateSendData( appData.cid, appData.appliedAt ) )
+    acceptApplication( requestData: IdentificationRequest.RequestData ) {
+        this.af.database.object( SessionRepository.acceptanceUrl( this.uid, requestData.$key ) )
+            .set( SessionAcceptance.CreateSendData( requestData.cid, requestData.requestedAt ) )
             .then( result => { console.log( 'registered') 
         }, rejected => {
-            console.log( 'no application found for user: ' + appData.$key );
+            console.log( 'no application found for user: ' + requestData.$key );
         } );
     }
 
