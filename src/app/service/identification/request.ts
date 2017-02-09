@@ -17,7 +17,7 @@ export class RequestRepository {
     constructor( private uid: string, private af: AngularFire ) {}
     private url( uid: string ) { return UserIdentification.URL_BASE + 'request/' + uid; }
 
-    deleteRequest(): Promise<void> {
+    unregisterRequest(): Promise<void> {
         return new Promise( ( resolve, reject ) => {
             if( this.uid ) {
                 resolve( this.af.database.object( this.url( this.uid ) ).remove() );

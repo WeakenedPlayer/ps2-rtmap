@@ -5,10 +5,10 @@ import * as UserIdentification from './common';
 import * as IdentificationRequest from './request'; 
 
 export class SessionAcceptance {
-    static CreateSendData( cid: string, appliedAt: number ) {
+    static CreateSendData( cid: string, requestedAt: number ) {
         return {
             'cid': cid,
-            'appliedAt': appliedAt,
+            'requestedAt': requestedAt,
             'token': SessionAcceptance.generateToken(),
             'acceptedAt': firebase.database.ServerValue.TIMESTAMP
         };
@@ -42,24 +42,25 @@ export class SessionRepository {
     
     constructor( private uid: string,private af: AngularFire ) {}
     
-    acceptApplication( requestData: IdentificationRequest.RequestData ) {
-        this.af.database.object( SessionRepository.acceptanceUrl( this.uid, requestData.$key ) )
-            .set( SessionAcceptance.CreateSendData( requestData.cid, requestData.requestedAt ) )
-            .then( result => { console.log( 'registered') 
-        }, rejected => {
-            console.log( 'no application found for user: ' + requestData.$key );
-        } );
+    // 本人確認要求を受け付ける
+    acceptRequest( requestData: IdentificationRequest.RequestData ): firebase.Promise<void> {
+        return this.af.database.object( SessionRepository.acceptanceUrl( this.uid, requestData.$key ) )
+                               .set( SessionAcceptance.CreateSendData( requestData.cid, requestData.requestedAt ) );
     }
 
     // 質問に答える
-    answerToQuestion( answer: string, identifierUid: string ) {
-        this.af.database.object( SessionRepository.answerUrl( this.uid, identifierUid ) )
-                        .set( answer );
+    answerToQuestion( answer: string, identifierUid: string ): firebase.Promise<void> {
+        if( !answer && !identifierUid ) {
+            throw( 'no answer or identifierUid specified' );
+        }
+        return this.af.database.object( SessionRepository.answerUrl( this.uid, identifierUid ) ).set( answer );
     }
     
     // 確認する
-    confirmAnswer( applicantUid: string ) {
-        this.af.database.object( SessionRepository.confirmationUrl( applicantUid, this.uid ) )
-                        .set( firebase.database.ServerValue.TIMESTAMP );
+    confirmAnswer( applicantUid: string ): firebase.Promise<void> {
+        if( !applicantUid ) {
+            throw( 'no applicantUid specified' );
+        }
+        return this.af.database.object( SessionRepository.confirmationUrl( applicantUid, this.uid ) ).set( firebase.database.ServerValue.TIMESTAMP );
     }
 }

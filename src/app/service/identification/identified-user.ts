@@ -26,11 +26,11 @@ export class IdentifiedUserRepository {
 
     constructor( private identifierUid: string,private af: AngularFire ) {}
 
-    getIdentifiedUserObserver( uid: string): FirebaseObjectObservable<IdentifiedUserInfo> {
+    getIdentifiedUserObservable( uid: string): FirebaseObjectObservable<IdentifiedUserInfo> {
         return this.af.database.object( IdentifiedUserRepository.url( uid ) );
     }
     
-    getAllIdentifiedUserObserver(): FirebaseListObservable<IdentifiedUserInfo[]> {
+    getAllIdentifiedUserObservable(): FirebaseListObservable<IdentifiedUserInfo[]> {
         return this.af.database.list( IdentifiedUserRepository.url() );
     }
     
