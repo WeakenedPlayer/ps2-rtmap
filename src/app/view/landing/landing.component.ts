@@ -19,8 +19,6 @@ export class LandingComponent implements OnInit, OnDestroy {
             this.authSubscriber.unsubscribe();
             if( auth ) {
                 this.msg = 'login as ' + auth.auth.displayName;
-                let request = new Identification.RequestRepository( auth.auth.uid, af );
-                request.registerRequest( 'characterId' );
                 
             } else {
                 this.msg = 'logout';

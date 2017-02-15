@@ -1,7 +1,10 @@
 import * as Model from './index';
 
 export class User {
-    constructor( public readonly uid: string ) {
+    constructor(
+            public readonly uid: string,
+            public disabled: boolean,
+            public ceatedAt: number ) {
     }
 
     isIdentical( uid: string ): boolean;
