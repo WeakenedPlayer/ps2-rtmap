@@ -17,7 +17,7 @@ export class UserRepository {
         return this.root + '/user/' + uid;
     }
     
-    getUserObserverById( uid: string ): Observable<Model.User> {
+    getUserObservableById( uid: string ): Observable<Model.User> {
         return Observable.create( ( subscriber: Subscriber<Model.User> ) => {
             let source = this.af.database.object( this.url( uid ) );
             let subscription = source.subscribe( val => {
@@ -26,6 +26,8 @@ export class UserRepository {
                         // DBからの復元(定型)
                         let user = new Model.User( val.$key, val.disabled, val.createdAt );
                         subscriber.next( user );
+                        // toPromiseを動かすための処置 : https://github.com/Reactive-Extensions/RxJS/issues/1088
+                        subscriber.complete();
                     } else {
                         throw new Repositories.NotFoundError;
                     }
@@ -43,16 +45,7 @@ export class UserRepository {
     }
     
     getUserById( uid: string ): Promise<Model.User> {
-        return new Promise( ( resolve, reject ) => {
-            try {
-                let subscription = this.getUserObserverById( uid ).subscribe( user => {
-                    resolve( user );
-                    subscription.unsubscribe();
-                } );
-            } catch( err ){
-                throw new Error( err );
-            }
-        } );
+        return this.getUserObservableById( uid ).toPromise();
     }
     
     // uid は重ならないので

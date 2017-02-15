@@ -27,11 +27,14 @@ export class AppComponent implements OnInit {
         this.userRepos.getUserById( 'testuser' ).then( user => {
             let req = new Model.IdentificationRequest( user, new Model.Character( 'test', 'im', 1,2,3) );
             this.reqRepos.addIdentificationRequest( req );
-        } );*/
-        
-        let subsc = this.reqRepos.getIdentificationRequestObservable( 'testuser' ).subscribe( val => {
-            console.log( val );
         } );
+        
+        let subsc = this.reqRepos.getIdentificationRequestObservable( 'testuser' ).take(3).subscribe( val => {
+            console.log( val );
+        }, err => {}, () => { console.log( 'done'); subsc.unsubscribe(); } );
+        let subsc = this.reqRepos.getIdentificationRequestObservable( 'testuser' ).toPromise().then( val => console.log( val) );*/
+        
+        let subsc = this.userRepos.getUserById( 'testuser' ).then( user => console.log( user ) );
     }
     
     ngOnInit() {

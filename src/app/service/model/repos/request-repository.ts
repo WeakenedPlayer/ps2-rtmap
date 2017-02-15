@@ -44,12 +44,17 @@ export class IdentificationRequestRepository {
     getIdentificationRequestObservable( uid: string ): Observable<Model.IdentificationRequest> {
         return Observable.create( ( subscriber: Subscriber<Model.IdentificationRequest> ) => {
             let reqObserver = this.getIdentificationRequestSnapshotObservable( uid );
-            let userObserver = this.userRepos.getUserObserverById( uid );
-            let subscription =  Observable.combineLatest( reqObserver, userObserver, ( req, user ) => {
-                // 要求スナップショットとユーザの結果を1セットにして、要求組み立てている
-                return new Model.IdentificationRequest( user, new Model.Character( req.cid, 'dmy', 0,1,2 ), req.requestedAt );
+            let userObserver = this.userRepos.getUserObservableById( uid );
+
+            // 2つのストリームの最新値の2つのオブジェクトを使って、1つのオブジェクトを組み立てて後段に流す Observable
+            // ( IdentificationRequestSnapshot, User ) => ( IdentificationRequest )
+            let subscription =  Observable.combineLatest( reqObserver, userObserver,
+                    ( req, user ) => { return new Model.IdentificationRequest( user, new Model.Character( req.cid, 'dmy', 0,1,2 ), req.requestedAt );
             } ).subscribe(
-                val => { subscriber.next( val ) },
+                val => {
+                    subscriber.next( val );
+                    subscriber.complete();
+                },
                 error => { console.log( 'error' ) },
                 () => console.log('onCompleted')
             );
@@ -61,4 +66,6 @@ export class IdentificationRequestRepository {
         let source = this.af.database.object( this.url( req.user.uid ) );
         return source.set( { cid: req.character.cid, requestedAt: firebase.database.ServerValue.TIMESTAMP } ) as Promise<void>;
     }
+    
+    
 }
