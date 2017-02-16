@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CensusService } from './service/census/census.service';
+import * as Census from './service/census';
+import { Headers, Http } from '@angular/http';
 
 import { FormControl } from '@angular/forms';
 
@@ -20,7 +21,7 @@ export class AppComponent implements OnInit {
     selectedId: string;
     userRepos: Repos.UserRepository;
     reqRepos: Repos.IdentificationRequestRepository;
-    constructor( private af: AngularFire ) {        
+    constructor( private af: AngularFire, private http: Http ) { 
         this.userRepos = new Repos.UserRepository( this.af, '/test' );
         this.reqRepos = new Repos.IdentificationRequestRepository( this.af, this.userRepos, '/test' );
         /*
@@ -34,7 +35,9 @@ export class AppComponent implements OnInit {
         }, err => {}, () => { console.log( 'done'); subsc.unsubscribe(); } );
         let subsc = this.reqRepos.getIdentificationRequestObservable( 'testuser' ).toPromise().then( val => console.log( val) );*/
         
-        let subsc = this.userRepos.getUserById( 'testuser' ).then( user => console.log( user ) );
+        // let subsc = this.userRepos.getUserById( 'testuser' ).then( user => console.log( user ) );
+        let character = new Census.CharacterNameGetter( http, new Census.UrlProvider() );
+        let subscriber = character.get( 'PartyOf' ).toPromise().then( result => console.log( result ) );
     }
     
     ngOnInit() {

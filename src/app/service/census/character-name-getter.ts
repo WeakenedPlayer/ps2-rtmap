@@ -31,8 +31,9 @@ export class CharacterNameGetter extends Common.QueryBase<string,CharacterNameLi
     }
     
     queryUrl( partialName: string ): string {
-        return 'character_name/?name.first_lower=^'+ partialName +'&c:limit=' + this.maxCount;
+        return 'character_name/?name.first_lower=^'+ partialName.toLowerCase() +'&c:limit=' + this.maxCount;
     }
+    
     extract( response: CharacterNameList ): CharacterName[] {
         return response.character_name_list;
     }

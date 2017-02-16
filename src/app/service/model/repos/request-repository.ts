@@ -66,6 +66,4 @@ export class IdentificationRequestRepository {
         let source = this.af.database.object( this.url( req.user.uid ) );
         return source.set( { cid: req.character.cid, requestedAt: firebase.database.ServerValue.TIMESTAMP } ) as Promise<void>;
     }
-    
-    
 }
