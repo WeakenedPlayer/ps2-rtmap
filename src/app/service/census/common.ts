@@ -23,8 +23,10 @@ export abstract class QueryBase<ParameterT,ResponseT,ResultT> {
             this.http.get( this.baseProvider.base() + this.queryUrl( param ) )
             .filter( response => {
                 if( response.status === 200 ) {
+                    // success
                     return true;
                 } else {
+                    // error
                     throw new ServiceErrorResponse;
                 }
             } )
@@ -44,7 +46,8 @@ export abstract class QueryBase<ParameterT,ResponseT,ResultT> {
 }
 
 export interface IBaseUrlProvider {
-    base(): string;
+    get(): string;
+    count(): string;
 }
 
 export class JoinQuery {

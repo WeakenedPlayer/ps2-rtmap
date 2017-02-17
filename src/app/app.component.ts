@@ -4,8 +4,8 @@ import { Headers, Http } from '@angular/http';
 
 import { FormControl } from '@angular/forms';
 
-import * as Repos from './service/model/repos';
-import * as Model from './service/model/model';
+import * as Repos from './service/id/repos';
+import * as Model from './service/id/model';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 
 import 'rxjs/add/operator/toPromise';
@@ -36,8 +36,24 @@ export class AppComponent implements OnInit {
         let subsc = this.reqRepos.getIdentificationRequestObservable( 'testuser' ).toPromise().then( val => console.log( val) );*/
         
         // let subsc = this.userRepos.getUserById( 'testuser' ).then( user => console.log( user ) );
-        let character = new Census.CharacterNameGetter( http, new Census.UrlProvider() );
-        let subscriber = character.get( 'PartyOf' ).toPromise().then( result => console.log( result ) );
+     // let character = new Census.CharacterNameGetter( http, new Census.UrlProvider() );
+     // let subscriber = character.get( 'PartyOf' ).toPromise().then( result => console.log( result ) );
+
+        let pa = new Model.Permission( 'a' );
+        let pb = new Model.Permission( 'b' ); 
+        let pc = new Model.Permission( 'c' );
+        let pd = new Model.Permission( 'd' );
+        let exe = new Model.Executer();
+        let op = new Model.Operation();
+        let requirement = new Model.PermissionRequirement();
+        
+        requirement.add( pa );
+        exe.grant( pa );
+        exe.grant( pb );
+        exe.grant( pc );
+        op.requires( requirement );
+        op.execute( exe );
+        
     }
     
     ngOnInit() {
