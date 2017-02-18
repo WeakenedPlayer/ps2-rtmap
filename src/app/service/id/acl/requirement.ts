@@ -7,3 +7,21 @@ import { Acl } from '../index';
 export abstract class Requirement {
     abstract isFulfilledBy( executer: Acl.Executer ): boolean;
 }
+
+/* ####################################################################################################################
+ * 権限(permission)が与えられているかどうかを調べるだけの要求
+ * ################################################################################################################# */
+export class PermissionRequirement implements Acl.Requirement {
+    private requirements: Acl.PermissionSet;
+    isFulfilledBy( executer: Acl.Executer ): boolean {
+        let rejected: number =9;
+//        Observable.from( this.requirements )
+//        .map( permission => executer.isGranted( permission ) )
+//        .count( result => ( result === false ) )
+//        .subscribe( count => rejected = count );
+        return ( rejected === 0 );
+    }
+    add( permission: Acl.Permission ): void {
+        //this.requirements.push( permission );
+    }
+}

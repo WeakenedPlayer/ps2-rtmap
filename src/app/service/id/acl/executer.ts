@@ -1,4 +1,4 @@
-import { Acl } from '../index';
+import { User, Acl } from '../index';
 import { Observable } from 'rxjs';
 
 /* ####################################################################################################################
@@ -7,20 +7,25 @@ import { Observable } from 'rxjs';
  * 権限が付与されているかを確認するインターフェースを持つ。
  * ################################################################################################################# */
 export class Executer {
-    private grantedPermissions: Acl.Permission[]= [];
+    private grantedPermissions: Acl.PermissionSet;
+    private user: User;
+    constructor( user: User ) {
+        this.user = user;
+    }
 
-    isGranted( requiredPermission: Acl.Permission ): boolean {
-        let grantedCount;
-        Observable.from( this.grantedPermissions )
-        .map( permission => {
-            return permission.equals( requiredPermission );
-        } )
-        .count( result => ( result === true ) )
-        .subscribe( count => grantedCount = count );
-        return ( grantedCount > 0 );
+    isGranted( requiredPermissions: Acl.PermissionSet ): boolean {
+        return this.grantedPermissions.containsAll( requiredPermissions );
     }
     
-    grant( permission: Acl.Permission ) {
-        this.grantedPermissions.push( permission );
+    grant( permission: Acl.Permission ): void {
+        this.grantedPermissions.add( permission );
+    }
+
+    revoke( permission: Acl.Permission ): void {
+        this.grantedPermissions.remove( permission );
+    }
+    
+    revokeAll(): void {
+        this.grantedPermissions.removeAll();
     }
 }
