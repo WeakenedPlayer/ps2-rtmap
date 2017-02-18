@@ -1,9 +1,9 @@
-import * as Model from './index';
+import { User, Identification } from '../index';
 
 export class UserIdentity {
     constructor(
-        private readonly subject: Model.User,
-        private readonly character: Model.Character,
-        private readonly identifiedBy: Model.User,
+        private readonly subject: User,
+        private readonly character: Identification.Character,
+        private readonly identifiedBy: User,
         private readonly identifiedAt?: number ) {}
 }

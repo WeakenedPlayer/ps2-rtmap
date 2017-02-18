@@ -1,5 +1,3 @@
-import * as Model from './index';
-
 // Value object
 export class Character {
     constructor(

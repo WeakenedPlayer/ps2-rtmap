@@ -1,4 +1,4 @@
-import * as Model from './index';
+import { User, Identification } from '../index';
 export class IdentificationSessionOutdatedError implements Error {
     public name: string;
     public message: string;
@@ -19,9 +19,9 @@ export class IdentificationRequesterUnmatchedError implements Error {
 
 // このオブジェクトを作るのは難しい。リポジトリにアクセスして使って作らないといけないのでFactoryが必要
 export class IdentificationSession {
-    private originalRequest: Model.IdentificationRequest;         // uid -> Request
-    private snapshot: Model.IdentificationRequestSnapshot;
-    private acceptedBy: Model.User;
+    private originalRequest: Identification.Request;         // uid -> Request
+    private snapshot: Identification.RequestSnapshot;
+    private acceptedBy: User;
     private token: string;
     private receivedToken: string;
 
@@ -92,11 +92,11 @@ export class IdentificationSession {
     }
     
     // 本人確認実施
-    identify(): Model.UserIdentity {
+    identify(): Identification.UserIdentity {
         if( !this.validateSession() ){
             throw new IdentificationSessionOutdatedError;
         }
-        return new Model.UserIdentity(
+        return new Identification.UserIdentity(
                 this.originalRequest.user,
                 this.originalRequest.character,
                 this.acceptedBy,

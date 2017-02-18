@@ -1,35 +1,33 @@
-import * as Repositories from './index';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 import * as firebase from 'firebase';       // required for timestamp
 import { Subscription, Observable, Subject, Subscriber } from 'rxjs';
-import * as Model from '../model';
+
+import { User, Repository } from '../index';
 import 'rxjs/add/operator/toPromise';
-
-
 
 export class UserRepository {
     constructor( private af: AngularFire, private readonly root: string ) {}
     
     url( uid: string ): string {
         if( !uid ) {
-            throw new Repositories.UidEmptyError;
+            throw new Repository.UidEmptyError;
         }
         return this.root + '/user/' + uid;
     }
     
-    getUserObservableById( uid: string ): Observable<Model.User> {
-        return Observable.create( ( subscriber: Subscriber<Model.User> ) => {
+    getUserObservableById( uid: string ): Observable<User> {
+        return Observable.create( ( subscriber: Subscriber<User> ) => {
             let source = this.af.database.object( this.url( uid ) );
             let subscription = source.subscribe( val => {
                 try {
                     if( val.$exists() ){
                         // DBからの復元(定型)
-                        let user = new Model.User( val.$key, val.disabled, val.createdAt );
+                        let user = new User( val.$key, val.disabled, val.createdAt );
                         subscriber.next( user );
                         // toPromiseを動かすための処置 : https://github.com/Reactive-Extensions/RxJS/issues/1088
                         subscriber.complete();
                     } else {
-                        throw new Repositories.NotFoundError;
+                        throw new Repository.NotFoundError;
                     }
                 } catch( err ) {
                     subscriber.error( err );
@@ -44,7 +42,7 @@ export class UserRepository {
         } );
     }
     
-    getUserById( uid: string ): Promise<Model.User> {
+    getUserById( uid: string ): Promise<User> {
         return this.getUserObservableById( uid ).toPromise();
     }
     

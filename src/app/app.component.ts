@@ -4,8 +4,7 @@ import { Headers, Http } from '@angular/http';
 
 import { FormControl } from '@angular/forms';
 
-import * as Repos from './service/id/repos';
-import * as Model from './service/id/model';
+import { Repository } from './service/id';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 
 import 'rxjs/add/operator/toPromise';
@@ -19,11 +18,11 @@ import 'rxjs/add/operator/toPromise';
 
 export class AppComponent implements OnInit {
     selectedId: string;
-    userRepos: Repos.UserRepository;
-    reqRepos: Repos.IdentificationRequestRepository;
+    userRepos: Repository.UserRepository;
+    reqRepos: Repository.RequestRepository;
     constructor( private af: AngularFire, private http: Http ) { 
-        this.userRepos = new Repos.UserRepository( this.af, '/test' );
-        this.reqRepos = new Repos.IdentificationRequestRepository( this.af, this.userRepos, '/test' );
+        this.userRepos = new Repository.UserRepository( this.af, '/test' );
+        this.reqRepos = new Repository.RequestRepository( this.af, this.userRepos, '/test' );
         /*
         this.userRepos.getUserById( 'testuser' ).then( user => {
             let req = new Model.IdentificationRequest( user, new Model.Character( 'test', 'im', 1,2,3) );
@@ -39,25 +38,25 @@ export class AppComponent implements OnInit {
      // let character = new Census.CharacterNameGetter( http, new Census.UrlProvider() );
      // let subscriber = character.get( 'PartyOf' ).toPromise().then( result => console.log( result ) );
 //
-        let pa = new Model.Permission( 'a' );
-        let pb = new Model.Permission( 'b' ); 
-        let pc = new Model.Permission( 'c' );
-        let pd = new Model.Permission( 'd' );
-        let exe = new Model.Executer();
-        let op = new Model.Operation();
-        let requirement = new Model.PermissionRequirement();
-        
-        requirement.add( pa );
-        exe.grant( pa );
-        exe.grant( pb );
-        exe.grant( pc );
-        op.requires( requirement );
-        try
-        {
-            op.execute( exe );
-        } catch( err ) {
-            console.log( err.message );
-        }
+//       let pa = new Model.Permission( 'a' );
+//        let pb = new Model.Permission( 'b' ); 
+//        let pc = new Model.Permission( 'c' );
+//        let pd = new Model.Permission( 'd' );
+//        let exe = new Model.Executer();
+//        let op = new Model.Operation();
+//        let requirement = new Model.PermissionRequirement();
+//        
+//        requirement.add( pa );
+//        exe.grant( pa );
+//        exe.grant( pb );
+//        exe.grant( pc );
+//        op.requires( requirement );
+//        try
+//        {
+//            op.execute( exe );
+//        } catch( err ) {
+//            console.log( err.message );
+//        }
     }
     
     ngOnInit() {

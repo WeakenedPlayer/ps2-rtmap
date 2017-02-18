@@ -1,4 +1,4 @@
-import * as Model from './index';
+import { User, Identification } from '../index';
 
 /* ####################################################################################################################
  * 要求 なんか変だけど UserIdentity(確認済み)とは分けて考える
@@ -6,31 +6,31 @@ import * as Model from './index';
  * ほとんど値オブジェクトみたいなもの
  * スナップショットを作る責務があるくらいか
  * ################################################################################################################# */
-export class IdentificationRequest{
+export class Request{
     constructor(
-            public readonly user: Model.User,
-            public readonly character: Model.Character,
+            public readonly user: User,
+            public readonly character: Identification.Character,
             public readonly requestedAt?: number ) {
     }
     
-    takeSnapshot(): IdentificationRequestSnapshot {
-        return new IdentificationRequestSnapshot(
+    takeSnapshot(): RequestSnapshot {
+        return new RequestSnapshot(
             this.user.uid,
             this.character.cid,
             this.requestedAt );
     }
     
-    isUpdated( snapshot: IdentificationRequestSnapshot ): boolean {
+    isUpdated( snapshot: RequestSnapshot ): boolean {
         return ( this.requestedAt > snapshot.requestedAt );
     }
     
-    isIdentical( snapshot: IdentificationRequestSnapshot ): boolean {
+    isIdentical( snapshot: RequestSnapshot ): boolean {
         return ( ( this.user.isIdentical( snapshot.uid ) )
               && ( this.character.isIdentical( snapshot.cid ) )
               && ( this.requestedAt === snapshot.requestedAt ) );
     }
     
-    isIdenticalUser( newRequest: IdentificationRequest ): boolean {
+    isIdenticalUser( newRequest: Request ): boolean {
         return this.user.isIdentical( newRequest.user );
     }
 }
@@ -38,7 +38,7 @@ export class IdentificationRequest{
 /* ####################################################################################################################
  * 要求を受け付けた時のスナップショット = DBに格納する形
  * ################################################################################################################# */
-export class IdentificationRequestSnapshot {
+export class RequestSnapshot {
     // 新規に作る場合のみ
     constructor(
             public readonly uid: string,
