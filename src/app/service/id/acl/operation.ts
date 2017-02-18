@@ -12,7 +12,7 @@ export class PermissionDeniedError implements Error {
     }
 }
 
-export class Operation {
+export abstract class Operation {
     requirement: Acl.Requirement;    
     requires( requirement: Acl.Requirement ) {
         this.requirement = requirement;
@@ -24,7 +24,5 @@ export class Operation {
             throw new PermissionDeniedError;
         }
     }
-    protected _execute() {
-        console.log( 'operation executed' );
-    }
+    protected abstract _execute();
 }

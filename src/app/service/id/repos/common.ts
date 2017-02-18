@@ -24,3 +24,7 @@ export class NotFoundError implements Error {
         this.message = 'Data not found';
     }
 }
+
+export class ServerData {
+    
+}
