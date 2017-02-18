@@ -18,7 +18,7 @@ export class Executer {
     }
     
     grant( permission: Acl.Permission ): void {
-        this.grantedPermissions.add( permission );
+        this.grantedPermissions.allow( permission );
     }
 
     revoke( permission: Acl.Permission ): void {
@@ -26,6 +26,6 @@ export class Executer {
     }
     
     revokeAll(): void {
-        this.grantedPermissions.removeAll();
+        this.grantedPermissions.denyAll();
     }
 }

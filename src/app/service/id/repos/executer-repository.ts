@@ -28,7 +28,6 @@ export class ExecuterRepository {
                 return permissions;
             } )
             .map( permission => {
-                tmp.set( permission.$value;
                 return permission;
             } )
             .subscribe(

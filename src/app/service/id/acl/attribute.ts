@@ -34,7 +34,7 @@ export class Attribute {
  * 同じ属性を複数持つのは禁止するので、連想配列そのものになる。
  * ################################################################################################################# */
 export class AttributeSet {
-    attributes: { [ key: string ]: any };
+    attributes: { [ key: string ]: any } = {};
     
     // 属性値を取得する
     get( attr: Attribute ): any {
@@ -73,8 +73,12 @@ export class Condition {
  * ################################################################################################################# */
 export abstract class ConditionSet extends Condition {
     private conditions: Condition[];
-    constructor( public readonly code: string ) {
+    constructor( public readonly code: string, conditions?: Condition[] ) {
         super( code, ( attr: AttributeSet ) => { return this.testAll( attr ) } );
+        
+        if( conditions ) {
+            this.conditions = conditions;
+        }
     }
     
     private testAll( attr: AttributeSet ): boolean {
@@ -110,8 +114,8 @@ export abstract class ConditionSet extends Condition {
  * ################################################################################################################# */
 export class AndConditionSet extends ConditionSet {
     private result: boolean = true;
-    constructor() {
-        super( 'and' );
+    constructor( conditions?: Condition[] ) {
+        super( 'and', conditions );
     }
 
     protected preCondition(): void {
@@ -119,8 +123,9 @@ export class AndConditionSet extends ConditionSet {
     }
     
     protected intermediateDecision( result: boolean ): boolean {
+        console.log( this.code + ': ' + result );
         this.result = this.result && result;
-        return this.result;
+        return !this.result;        // 一度でも false になったら中断する
     }
 
     protected finalDecision(): boolean {
@@ -133,8 +138,8 @@ export class AndConditionSet extends ConditionSet {
  * ################################################################################################################# */
 export class OrConditionSet extends ConditionSet {
     private result: boolean = false;
-    constructor() {
-        super( 'or' );
+    constructor( conditions?: Condition[] ) {
+        super( 'or', conditions );
     }
 
     protected preCondition(): void {
@@ -142,8 +147,9 @@ export class OrConditionSet extends ConditionSet {
     }
     
     protected intermediateDecision( result: boolean ): boolean {
+        // console.log( this.code + ': ' + result );
         this.result = this.result || result;
-        return !this.result;
+        return this.result;
     }
 
     protected finalDecision(): boolean {
@@ -157,8 +163,8 @@ export class OrConditionSet extends ConditionSet {
 export class CountConditionSet extends ConditionSet {
     private trueCount: number = 0;
     private falseCount: number = 0;
-    constructor( private decision: ( trueCount, falseCount ) => boolean ) {
-        super( 'count' );
+    constructor( private decision: ( trueCount, falseCount ) => boolean, conditions?: Condition[] ) {
+        super( 'count', conditions );
     }
 
     protected preCondition(): void {
@@ -172,7 +178,7 @@ export class CountConditionSet extends ConditionSet {
         } else {
             this.falseCount = this.falseCount + 1;
         }
-        return true;
+        return false;
     }
 
     protected finalDecision(): boolean {

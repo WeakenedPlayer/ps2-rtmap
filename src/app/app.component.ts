@@ -23,6 +23,7 @@ export class AppComponent implements OnInit {
     constructor( private af: AngularFire, private http: Http ) { 
         this.userRepos = new Repository.UserRepository( this.af, '/test' );
         this.reqRepos = new Repository.RequestRepository( this.af, this.userRepos, '/test' );
+        /*
         let execRepos = new Repository.ExecuterRepository( af, '/test' );
 
         let required = new Acl.PermissionSet();
@@ -36,6 +37,9 @@ export class AppComponent implements OnInit {
         let exe: Acl.Executer;
         
         execRepos.getByUser( user ).subscribe( x => { console.log( 'test'); console.log(x); } );
+        */
+        
+        this.testAttribute();
     }
     
     ngOnInit() {
@@ -43,5 +47,24 @@ export class AppComponent implements OnInit {
     characterSelected( id: string ){
         console.log( id );
         this.selectedId = id;
+    }
+    
+    testAttribute() {
+        let adminAttr = new Acl.Attribute( 'admin' );
+        let mapAccessAttr = new Acl.Attribute( 'mapAccess' );
+        
+        let hasAdminCondition = new Acl.Condition( 'admin', ( attr ) => { return attr.get(adminAttr) } );
+        let hasMapAccessCondition = new Acl.Condition( 'mapAccess', ( attr ) => { return attr.get(mapAccessAttr) } );
+        
+        let attr = new Acl.AttributeSet();
+        attr.set( adminAttr, true );
+        attr.set( mapAccessAttr, false );
+
+        let andCond = new Acl.AndConditionSet( [ hasAdminCondition, hasMapAccessCondition ] );
+        console.log( andCond.test( attr ) );
+        
+
+        let orCond = new Acl.OrConditionSet( [ hasAdminCondition, hasMapAccessCondition ] );
+        console.log( orCond.test( attr ) );
     }
 }
