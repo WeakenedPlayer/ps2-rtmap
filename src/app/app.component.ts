@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
         // let subsc = this.userRepos.getUserById( 'testuser' ).then( user => console.log( user ) );
      // let character = new Census.CharacterNameGetter( http, new Census.UrlProvider() );
      // let subscriber = character.get( 'PartyOf' ).toPromise().then( result => console.log( result ) );
-
+//
         let pa = new Model.Permission( 'a' );
         let pb = new Model.Permission( 'b' ); 
         let pc = new Model.Permission( 'c' );
@@ -52,8 +52,12 @@ export class AppComponent implements OnInit {
         exe.grant( pb );
         exe.grant( pc );
         op.requires( requirement );
-        op.execute( exe );
-        
+        try
+        {
+            op.execute( exe );
+        } catch( err ) {
+            console.log( err.message );
+        }
     }
     
     ngOnInit() {

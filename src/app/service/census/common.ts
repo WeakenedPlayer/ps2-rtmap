@@ -20,7 +20,7 @@ export abstract class QueryBase<ParameterT,ResponseT,ResultT> {
 
     get( param: ParameterT ): Observable<ResultT> {
         return Observable.create( ( subscriber: Subscriber<ResultT> ) => {
-            this.http.get( this.baseProvider.base() + this.queryUrl( param ) )
+            this.http.get( this.baseProvider.get() + this.queryUrl( param ) )
             .filter( response => {
                 if( response.status === 200 ) {
                     // success
