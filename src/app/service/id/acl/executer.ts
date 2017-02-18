@@ -14,7 +14,7 @@ export class Executer {
     }
 
     isGranted( requiredPermissions: Acl.PermissionSet ): boolean {
-        return this.grantedPermissions.containsAll( requiredPermissions );
+        return this.grantedPermissions.containAll( requiredPermissions );
     }
     
     grant( permission: Acl.Permission ): void {

@@ -4,7 +4,7 @@ import { Headers, Http } from '@angular/http';
 
 import { FormControl } from '@angular/forms';
 
-import { Repository } from './service/id';
+import { User, Repository, Acl } from './service/id';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 
 import 'rxjs/add/operator/toPromise';
@@ -23,40 +23,24 @@ export class AppComponent implements OnInit {
     constructor( private af: AngularFire, private http: Http ) { 
         this.userRepos = new Repository.UserRepository( this.af, '/test' );
         this.reqRepos = new Repository.RequestRepository( this.af, this.userRepos, '/test' );
-        /*
-        this.userRepos.getUserById( 'testuser' ).then( user => {
-            let req = new Model.IdentificationRequest( user, new Model.Character( 'test', 'im', 1,2,3) );
-            this.reqRepos.addIdentificationRequest( req );
-        } );
+
+        let required = new Acl.PermissionSet();
+        required.add( new Acl.Permission( 'x' ) );
+        required.add( new Acl.Permission( 'y' ) );
+        let test = new Acl.PermissionSet();
+        test.add( new Acl.Permission( 'test1' ) );
+        test.add( new Acl.Permission( 'test2' ) );
+        test.add( new Acl.Permission( 'test3' ) );
+        test.add( new Acl.Permission( 'test4' ) );
+
+
+        console.log( 'pre' );
+        console.log( required );
+
+        required.append( test );
         
-        let subsc = this.reqRepos.getIdentificationRequestObservable( 'testuser' ).take(3).subscribe( val => {
-            console.log( val );
-        }, err => {}, () => { console.log( 'done'); subsc.unsubscribe(); } );
-        let subsc = this.reqRepos.getIdentificationRequestObservable( 'testuser' ).toPromise().then( val => console.log( val) );*/
-        
-        // let subsc = this.userRepos.getUserById( 'testuser' ).then( user => console.log( user ) );
-     // let character = new Census.CharacterNameGetter( http, new Census.UrlProvider() );
-     // let subscriber = character.get( 'PartyOf' ).toPromise().then( result => console.log( result ) );
-//
-//       let pa = new Model.Permission( 'a' );
-//        let pb = new Model.Permission( 'b' ); 
-//        let pc = new Model.Permission( 'c' );
-//        let pd = new Model.Permission( 'd' );
-//        let exe = new Model.Executer();
-//        let op = new Model.Operation();
-//        let requirement = new Model.PermissionRequirement();
-//        
-//        requirement.add( pa );
-//        exe.grant( pa );
-//        exe.grant( pb );
-//        exe.grant( pc );
-//        op.requires( requirement );
-//        try
-//        {
-//            op.execute( exe );
-//        } catch( err ) {
-//            console.log( err.message );
-//        }
+        console.log( 'append' );
+        console.log( required );
     }
     
     ngOnInit() {

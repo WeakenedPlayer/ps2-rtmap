@@ -23,6 +23,7 @@ export class InvalidPermissionCode implements Error {
 export class Permission {
     constructor( public readonly code: string　) {
         if( !code ) {
+            // 禁止文字列 / 等もチェックするよう改良する
             throw new InvalidPermissionCode;
         }
     }
@@ -35,8 +36,9 @@ export class Permission {
  * 許可のセット
  * ################################################################################################################# */
 export class PermissionSet {
-    private 
-    permissions:  { [ key: string ]: boolean } = {};
+    private permissions:  { [ key: string ]: boolean } = {};
+    
+    // 配列からセットを生成
     static fromPermissionList( permissions: Permission[] ) {
         let tmp = new PermissionSet();
         for( let p of permissions ) {
@@ -45,19 +47,36 @@ export class PermissionSet {
         return tmp;
     }
     
+    private _set( permission: Permission, val: boolean ) : void {
+        this.permissions[ permission.code ] = val;
+    }
+
     // 許可追加
     add( permission: Permission ): void {
-        this.permissions[ permission.code ] = true;
+        this._set( permission, true );
     }
-    
     // 許可削除
-    remove( permission: Permission ): void {
-        this.permissions[ permission.code ] = false;
+    remove( permission: Permission): void {
+        this._set( permission, false );
     }
 
     // 全許可削除
     removeAll(): void {
         this.permissions = {};
+    }
+
+    //　付け足す
+    append( permissionSet: PermissionSet ): void {
+        // 参照渡しにならないようコピーする
+        for( let code in permissionSet.permissions ) {
+            this.permissions[ code ] = permissionSet.permissions[ code ];            
+        }
+    }
+
+    // コピー
+    copy( permissionSet: PermissionSet ): void {
+        this.removeAll();
+        this.append( permissionSet );
     }
     
     // 引数で与えられた許可をすべて持つか
