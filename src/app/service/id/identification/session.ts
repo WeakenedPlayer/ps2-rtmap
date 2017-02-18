@@ -1,4 +1,5 @@
 import { User, Identification } from '../index';
+
 export class IdentificationSessionOutdatedError implements Error {
     public name: string;
     public message: string;

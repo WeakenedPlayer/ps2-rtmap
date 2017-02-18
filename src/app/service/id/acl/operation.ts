@@ -1,7 +1,10 @@
-import * as Acl from './index';
+// rxjs
 import { Observable } from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/count';
+
+// model
+import { Acl } from '../index';
 
 /* ####################################################################################################################
  * 操作

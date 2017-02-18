@@ -1,9 +1,13 @@
-import { User } from '../index';
-
-import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
-import * as firebase from 'firebase';       // required for timestamp
+// rxjs
 import { Subscription, Observable, Subject, Subscriber } from 'rxjs';
 import 'rxjs/add/operator/toPromise';
+
+// Firebase
+import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
+import * as firebase from 'firebase';       // required for timestamp
+
+// model
+import { User, Repository } from '../index';
 
 /* ####################################################################################################################
  * 要求 なんか変だけど UserIdentity(確認済み)とは分けて考える
