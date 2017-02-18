@@ -42,26 +42,31 @@ export class PermissionSet {
     static fromPermissionList( permissions: Permission[] ) {
         let tmp = new PermissionSet();
         for( let p of permissions ) {
-            tmp.add( p );
+            tmp.allow( p );
         }
         return tmp;
     }
     
-    private _set( permission: Permission, val: boolean ) : void {
+    set( permission: Permission, val: boolean ) : void {
         this.permissions[ permission.code ] = val;
     }
 
     // 許可追加
-    add( permission: Permission ): void {
-        this._set( permission, true );
+    allow( permission: Permission ): void {
+        this.set( permission, true );
     }
-    // 許可削除
-    remove( permission: Permission): void {
-        this._set( permission, false );
+    // 
+    deny( permission: Permission): void {
+        this.set( permission, false );
     }
 
+    remove( permission: Permission): void {
+        // 条件をなくす
+        this.permissions[ permission.code ] = null;
+    }
+    
     // 全許可削除
-    removeAll(): void {
+    denyAll(): void {
         this.permissions = {};
     }
 
@@ -75,7 +80,7 @@ export class PermissionSet {
 
     // コピー
     copy( permissionSet: PermissionSet ): void {
-        this.removeAll();
+        this.denyAll();
         this.append( permissionSet );
     }
     

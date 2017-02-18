@@ -23,6 +23,7 @@ export class AppComponent implements OnInit {
     constructor( private af: AngularFire, private http: Http ) { 
         this.userRepos = new Repository.UserRepository( this.af, '/test' );
         this.reqRepos = new Repository.RequestRepository( this.af, this.userRepos, '/test' );
+        let execRepos = new Repository.ExecuterRepository( af, '/test' );
 
         let required = new Acl.PermissionSet();
         required.add( new Acl.Permission( 'x' ) );
@@ -30,17 +31,11 @@ export class AppComponent implements OnInit {
         let test = new Acl.PermissionSet();
         test.add( new Acl.Permission( 'test1' ) );
         test.add( new Acl.Permission( 'test2' ) );
-        test.add( new Acl.Permission( 'test3' ) );
-        test.add( new Acl.Permission( 'test4' ) );
-
-
-        console.log( 'pre' );
-        console.log( required );
-
-        required.append( test );
         
-        console.log( 'append' );
-        console.log( required );
+        let user = new User( '8PGAlqf37mU1jwzQ7t9UNllm73t1',false,1 );
+        let exe: Acl.Executer;
+        
+        execRepos.getByUser( user ).subscribe( x => { console.log( 'test'); console.log(x); } );
     }
     
     ngOnInit() {

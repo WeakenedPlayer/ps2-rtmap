@@ -20,45 +20,24 @@ export class ExecuterRepository {
         return this.root + '/executer/' + user.uid;
     }
     
-    getExecuter( user: User ): Observable<Acl.Executer> {
+    getByUser( user: User ): Observable<Acl.Executer> {
         return Observable.create( ( subscriber: Subscriber<Acl.Executer> ) => {
-            let executer = new Acl.Executer( user );
+            let tmp = new Acl.PermissionSet();
             this.af.database.list( this.url( user ) )
-            .flatMap( ( permissions: Array<any> ) => permissions )
-            .filter( permission => permission.$value )
+            .flatMap( ( permissions: Array<any> ) => {
+                return permissions;
+            } )
             .map( permission => {
-                executer.grant( new Acl.Permission( permission.$key ) );
-                return executer;
+                tmp.set( permission.$value;
+                return permission;
             } )
             .subscribe(
                 result => {
-                    console.log( result );
+                    subscriber.next( result );
                 },
                 err => {},
                 () => {}
             );
-            /*
-            let subscription = source.subscribe( val => {
-                try {
-                    if( val.$exists() ){
-                        // DBからの復元(定型)
-                        let executer = new Acl.Executer( user );
-                        subscriber.next( executer );
-                        subscriber.complete();
-                    } else {
-                        throw new Repositories.NotFoundError;
-                    }
-                } catch( err ) {
-                    subscriber.error( err );
-                }
-            },
-            err => subscriber.error( err ),
-            () => {
-                subscriber.complete();
-                console.log('completed');
-            });
-            return subscription;
-            */
         } );
     }
 }
