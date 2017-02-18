@@ -1,4 +1,4 @@
-import { Acl } from '../index';
+import * as Acl from './index';
 import { Observable } from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/count';
