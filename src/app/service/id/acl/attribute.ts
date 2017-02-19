@@ -14,6 +14,13 @@ export class InvalidAttributeKey implements Error {
  * 属性キー
  * ################################################################################################################# */
 export class AttributeKey {
+    static create( attrKey: AttributeKey | string ) {
+        if( typeof attrKey === typeof AttributeKey ) {
+            return attrKey;
+        } else {
+            return new AttributeKey( attrKey as string );
+        }
+    }
     constructor( public readonly key: string　) {
         if( !key ) {
             // 禁止文字列 / 等もチェックするよう改良する。string のサブセットなので
@@ -28,11 +35,7 @@ export class AttributeKey {
 export class Attribute {
     private attrKey;
     constructor( attrKey: AttributeKey | string ) {
-        if( typeof attrKey === typeof AttributeKey ) {
-            this.attrKey = attrKey;
-        } else {
-            this.attrKey = new AttributeKey( attrKey as string );
-        }
+        this.attrKey = AttributeKey.create( attrKey );
     }
     values: { [ key: string ]: any } = {};
     // キーを追加する (値は未設定、構造だけの変更)
