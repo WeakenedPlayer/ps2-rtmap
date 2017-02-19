@@ -5,9 +5,10 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { Location } from '@angular/common';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
-
-import * as Census from '../../service/census';
+import 'rxjs/add/operator/toPromise';
 // https://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html
+
+import { Census } from '../../service/census';
 
 const CENSUS_API_LOWER_LIMIT = 3;
 
@@ -19,25 +20,23 @@ const CENSUS_API_LOWER_LIMIT = 3;
 export class CharacterSearchComponent implements OnInit {
     // 候補
     candidates: Census.CharacterName[];
-    characterFinder: Census.CharacterNameGetter;
     
     // 選択結果
     selectedCharacter: Census.CharacterName = null;
     
     // 検索用
-    baseUrlProvider = new Census.UrlProvider();    
+    baseUrlProvider = new Census.UrlProvider( 'WeakenedFuntime' );    
     partialNameInput = new FormControl();
 
-    profile: Census.CharacterProfileGetter;
-    constructor( private http: Http, private location: Location ) {
-        this.characterFinder = new Census.CharacterNameGetter( http, this.baseUrlProvider );
+    constructor( private census: Census.Service, private location: Location ) {
         this.partialNameInput.valueChanges
         .debounceTime(500)
         .distinctUntilChanged()
         .subscribe( partialName => {
             // 500msは間隔をあけて、内容が変わっていたら入力された文字列でCensus APIに問い合わせる
             if( partialName.length >= CENSUS_API_LOWER_LIMIT ){
-                this.characterFinder.query( partialName.toLowerCase() )
+                this.census.getCharacterNames( partialName.toLowerCase() )
+                .toPromise()
                 .then( result => {
                     this.candidates = result;
                 })
@@ -47,8 +46,6 @@ export class CharacterSearchComponent implements OnInit {
                 this.candidates = [];
             }
         });
-        
-        this.profile = new Census.CharacterProfileGetter( http, this.baseUrlProvider );
     }
     selectCharacter( characterName: Census.CharacterName ) {
         this.selectedCharacter = characterName;

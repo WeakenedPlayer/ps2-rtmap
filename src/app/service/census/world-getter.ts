@@ -21,8 +21,8 @@ export class WorldGetter extends Common.QueryBase<string[],WorldList,World[]>{
         super( http, baseProvider );
     }
     
-    queryUrl( characterIds: string[] ): string {
-        return 'world?world_id='+ characterIds.join(',');
+    queryUrl( worldIds: string[] ): string {
+        return 'world?world_id='+ worldIds.join(',');
     }
     
     extract( response: WorldList ): World[] {

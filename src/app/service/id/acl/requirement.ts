@@ -125,3 +125,15 @@ export class CountRequirementSet extends RequirementSet {
         return this.decision( this.trueCount, this.falseCount );
     }
 }
+
+/* ####################################################################################################################
+ * 無名の要求(クラスにするまでもないもの)
+ * ################################################################################################################# */
+export class AnonymousRequirement extends Requirement {
+    constructor( private expr: (logger?: FulfillmentLogger) => boolean ) {
+        super();
+    }
+    isFulfilled( logger?: FulfillmentLogger ): boolean {
+        return this.expr( logger );
+    }
+}

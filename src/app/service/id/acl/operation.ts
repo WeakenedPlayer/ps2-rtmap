@@ -7,7 +7,7 @@ export class PermissionDeniedError implements Error {
     message: string;
     constructor() {
         this.name = 'Cannot execute operation.';
-        this.message = 'Permission denied.';
+        this.message = 'requirements are not fulfilled.';
     }
 }
 
@@ -15,8 +15,8 @@ export class PermissionDeniedError implements Error {
  * 操作
  * ################################################################################################################# */
 export abstract class Operation {
-    requirement: Acl.IRequirement;
-    requires( requirement: Acl.IRequirement ) {
+    requirement: Acl.Requirement;
+    requires( requirement: Acl.Requirement ) {
         this.requirement = requirement;
     }
     execute() {
@@ -27,4 +27,16 @@ export abstract class Operation {
         }
     }
     protected abstract _execute();
+}
+
+/* ####################################################################################################################
+ * 無名操作( パラメータを取らない簡単なものに限定)
+ * ################################################################################################################# */
+export class AnonymousOperation extends Operation {
+    constructor( private op: () => void ) {
+        super();
+    }
+    protected _execute(): void {
+        this.op();
+    }
 }

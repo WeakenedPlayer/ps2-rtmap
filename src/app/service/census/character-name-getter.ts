@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import * as Common from './common';
