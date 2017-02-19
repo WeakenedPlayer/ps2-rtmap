@@ -1,21 +1,26 @@
-// rxjs
-import { Observable } from 'rxjs';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/count';
-
-// model
 import { Acl } from '../index';
+/* ####################################################################################################################
+ * 例外
+ * ################################################################################################################# */
+export class PermissionDeniedError implements Error {
+    name: string;
+    message: string;
+    constructor() {
+        this.name = 'Cannot execute operation.';
+        this.message = 'Permission denied.';
+    }
+}
 
 /* ####################################################################################################################
  * 操作
  * ################################################################################################################# */
 export abstract class Operation {
-    requirement: Acl.Condition;    
-    requires( requirement: Acl.Condition ) {
+    requirement: Acl.IRequirement;
+    requires( requirement: Acl.IRequirement ) {
         this.requirement = requirement;
     }
-    execute( executer: Acl.Executer ) {
-        if( this.requirement.test( executer ) ) {
+    execute() {
+        if( this.requirement.isFulfilled() ) {
             this._execute();
         } else {
             throw new Acl.PermissionDeniedError;
