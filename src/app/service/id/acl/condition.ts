@@ -18,12 +18,12 @@ export class InvalidConditionCode implements Error {
  * test で、与えられた属性セットに対して評価した結果をbooleanで返す。
  * ################################################################################################################# */
 export class Condition {
-    constructor( public readonly code: string, private expr: ( attr: Acl.AttributeSet ) => boolean ) {
+    constructor( public readonly code: string, private expr: ( attr: Acl.Attribute ) => boolean ) {
         if( !code ) {
             throw new InvalidConditionCode;
         }
     }
-    test( attr: Acl.AttributeSet ): boolean {
+    test( attr: Acl.Attribute ): boolean {
         return this.expr( attr );
     }
 }
@@ -34,14 +34,14 @@ export class Condition {
 export abstract class ConditionSet extends Condition {
     private conditions: Condition[];
     constructor( public readonly code: string, conditions?: Condition[] ) {
-        super( code, ( attr: Acl.AttributeSet ) => { return this.testAll( attr ) } );
+        super( code, ( attr: Acl.Attribute ) => { return this.testAll( attr ) } );
         
         if( conditions ) {
             this.conditions = conditions;
         }
     }
     
-    private testAll( attr: Acl.AttributeSet ): boolean {
+    private testAll( attr: Acl.Attribute ): boolean {
         this.preCondition();
         for( let condition of this.conditions ) {
             let abort = this.intermediateDecision( condition.test( attr ) );

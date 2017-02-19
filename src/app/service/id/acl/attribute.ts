@@ -1,52 +1,93 @@
 /* ####################################################################################################################
- * 不正な属性コード
+ * 不正な属性キー
  * ################################################################################################################# */
-export class InvalidAttributeCode implements Error {
+export class InvalidAttributeKey implements Error {
     name: string;
     message: string;
     constructor() {
-        this.name = 'Invalid Attribute Code.';
-        this.message = 'Attribute code is invalid.';
+        this.name = 'Invalid Attribute Key.';
+        this.message = 'Attribute Key is invalid.';
     }
 }
 
 /* ####################################################################################################################
- * 属性(attribute)
- * ユーザに与えられる情報。管理者権限があるとか、禁止されたユーザであるとか、何らかの値を持つもの。
- * インスタンスが一つの属性を意味する。
+ * 属性キー
  * ################################################################################################################# */
-export class Attribute {
-    constructor( public readonly code: string　) {
-        if( !code ) {
-            // 禁止文字列 / 等もチェックするよう改良する
-            throw new InvalidAttributeCode;
+export class AttributeKey {
+    constructor( public readonly key: string　) {
+        if( !key ) {
+            // 禁止文字列 / 等もチェックするよう改良する。string のサブセットなので
+            throw new InvalidAttributeKey;
         }
     }
 }
 
 /* ####################################################################################################################
- * 属性セット
- * 同じ属性を複数持つのは禁止するので、連想配列そのものになる。
+ * 属性
  * ################################################################################################################# */
-export class AttributeSet {
-    attributes: { [ key: string ]: any } = {};
-    
-    // 属性値を取得する
-    get( attr: Attribute ): any {
-        return this.attributes[ attr.code ];
+export class Attribute {
+    private attrKey;
+    constructor( attrKey: AttributeKey | string ) {
+        if( typeof attrKey === typeof AttributeKey ) {
+            this.attrKey = attrKey;
+        } else {
+            this.attrKey = new AttributeKey( attrKey as string );
+        }
     }
-
-    // 属性値を設定する
-    set( attr: Attribute, value: any ): void {
-        this.attributes[ attr.code ] = value;
-    }
-
-    // 属性値をなくす
-    remove( attr: Attribute ): void {
-        this.attributes[ attr.code ] = null;
+    values: { [ key: string ]: any } = {};
+    // キーを追加する (値は未設定、構造だけの変更)
+    addKey( attrKey: AttributeKey ) {
+        this.values[ attrKey.key ] = undefined;
     }
     
-    removeAll(): void {
-        this.attributes = {};
+    // キーを削除する
+    removeKey( attrKey: AttributeKey ): void {
+        this.values[ attrKey.key ] = null;
+    }
+
+    // 全てのキーを削除する
+    removeAllKey(): void {
+        this.values = {};
+    }
+    
+    // 属性値を取得する( キーがなくても値は返す )
+    get( attrKey: AttributeKey ): number | string | boolean {
+        return this.values[ attrKey.key ];
+    }
+
+    // 属性値を取得する( キーがなかったら追加する )
+    set( attrKey: AttributeKey, value: number | string | boolean ): void {
+        this.values[ attrKey.key ] = value;
+    }
+
+    // 子属性を追加する
+    addChild( attr: Attribute ): void {
+        // 属性のまま参照を渡す(値渡しはしない)
+        this.values[ attr.attrKey.key ] = attr;
+    }
+    
+    // 子属性を削除する
+    removeChild( attr: Attribute ): void {
+        // 属性のまま参照を渡す(値渡しはしない)
+        this.values[ attr.attrKey.key ] = null;
+    }
+    
+    clone( newKey?: AttributeKey ): Attribute {
+        let newAttr: Attribute;
+        if( newKey ) {
+            newAttr = new Attribute( newKey );
+        } else {
+            newAttr = new Attribute( this.attrKey );
+        }
+        
+        for( let key in this.values ) {
+            if( typeof this.values[ key ] === typeof Attribute ) {
+                newAttr.values[ key ] = this.values[ key ].clone();
+            } else {
+                newAttr.values[ key ] = this.values[ key ];
+            }
+        }
+        
+        return newAttr;
     }
 }

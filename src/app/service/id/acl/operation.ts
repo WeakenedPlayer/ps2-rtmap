@@ -10,12 +10,12 @@ import { Acl } from '../index';
  * 操作
  * ################################################################################################################# */
 export abstract class Operation {
-    requirement: Acl.Requirement;    
-    requires( requirement: Acl.Requirement ) {
+    requirement: Acl.Condition;    
+    requires( requirement: Acl.Condition ) {
         this.requirement = requirement;
     }
     execute( executer: Acl.Executer ) {
-        if( this.requirement.isFulfilledBy( executer ) ) {
+        if( this.requirement.test( executer ) ) {
             this._execute();
         } else {
             throw new Acl.PermissionDeniedError;

@@ -9,6 +9,8 @@ import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, Angular
 
 import 'rxjs/add/operator/toPromise';
 
+import * as ExpAttr from './service/id/acl/exp-attribute';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -38,8 +40,8 @@ export class AppComponent implements OnInit {
         
         execRepos.getByUser( user ).subscribe( x => { console.log( 'test'); console.log(x); } );
         */
-        
         this.testAttribute();
+        this.testExpAttribute();
     }
     
     ngOnInit() {
@@ -50,13 +52,13 @@ export class AppComponent implements OnInit {
     }
     
     testAttribute() {
-        let adminAttr = new Acl.Attribute( 'admin' );
-        let mapAccessAttr = new Acl.Attribute( 'mapAccess' );
+        let adminAttr = new Acl.AttributeKey( 'admin' );
+        let mapAccessAttr = new Acl.AttributeKey( 'mapAccess' );
         
-        let hasAdminCondition = new Acl.Condition( 'admin', ( attr ) => { return attr.get(adminAttr) } );
-        let hasMapAccessCondition = new Acl.Condition( 'mapAccess', ( attr ) => { return attr.get(mapAccessAttr) } );
+        let hasAdminCondition = new Acl.Condition( 'admin', ( attr ) => { return ( attr.get( adminAttr ) === true ) } );
+        let hasMapAccessCondition = new Acl.Condition( 'mapAccess', ( attr ) => { return ( attr.get( mapAccessAttr ) === true ) } );
         
-        let attr = new Acl.AttributeSet();
+        let attr = new Acl.Attribute( 'attrs' );
         attr.set( adminAttr, true );
         attr.set( mapAccessAttr, false );
 
@@ -66,5 +68,24 @@ export class AppComponent implements OnInit {
 
         let orCond = new Acl.OrConditionSet( [ hasAdminCondition, hasMapAccessCondition ] );
         console.log( orCond.test( attr ) );
+        console.log(  attr  );
+    }
+    
+    testExpAttribute() {
+        let prototype = new ExpAttr.Attribute( new ExpAttr.AttributeKey( 'root' ) );
+        prototype.addKey( new ExpAttr.AttributeKey( 'hungly' ) );
+        prototype.addKey( new ExpAttr.AttributeKey( 'sleepy' ) );
+        prototype.addKey( new ExpAttr.AttributeKey( 'tired' ) );
+
+        let sub = new ExpAttr.Attribute( new ExpAttr.AttributeKey( 'sub' ) );
+        sub.addKey( new ExpAttr.AttributeKey( 'active' ) );
+        sub.addKey( new ExpAttr.AttributeKey( 'updatedAt' ) );
+        
+        prototype.addChild( sub );
+        
+        console.log( prototype.clone( new ExpAttr.AttributeKey( 'cloned root' ) ));
+
+        prototype.removeAllKey();
+        console.log( prototype );
     }
 }
