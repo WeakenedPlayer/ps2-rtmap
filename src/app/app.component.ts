@@ -21,7 +21,6 @@ import { AclSample,  Mapper } from './service/id/sample';
 export class AppComponent implements OnInit {
     selectedId: string;
     childDb: Mapper.ChildDb;
-parentDb: Mapper.ParentDb;
 parentDb2: Mapper.ParentDb2;
     constructor( private af: AngularFire, private http: Http ) { 
         this.childDb = new Mapper.ChildDb( af, '/test/mapper' );
@@ -52,7 +51,7 @@ parentDb2: Mapper.ParentDb2;
 
     test(){
         console.time('xyz');
-        let subscription = this.parentDb2.get( 'mxyz' ).subscribe( result => {
+        let subscription = this.childDb.get( 'abc' ).subscribe( result => {
           console.timeEnd('xyz');
           console.log( result );
         });

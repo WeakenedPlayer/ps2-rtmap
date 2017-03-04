@@ -70,39 +70,51 @@ export abstract class AbstractMapper<MODEL> {
     private url( model: MODEL ) {
         return this.root + '/' + this.id( model );
     }
-    protected abstract id( model: MODEL ): string;
-    protected abstract store( model: MODEL ): any;
-    protected abstract retrieve( dbdata: any ): Observable<MODEL>;
     
+    // URLに使用する、IDに該当する値を取得する
+    protected abstract id( model: MODEL ): string;
+
+    // 
+    protected abstract _decomposeNewModel( model: MODEL ): any;
+    protected abstract _decomposeUpdatedModel( model: MODEL ): any;
+    protected abstract _composeModel( retrievedData: any ): Observable<MODEL>;
+ 
+    // IDを指定して、該当するオブジェクトを取得する
     get( id: string ): Observable<MODEL> {
         let source = this.af.database.object( this.root + '/' + id ) as Observable<any>;
+        let obs = source.flatMap( dbdata => this._composeModel( dbdata ) );
         // 取得したデータ(dbdata)を使って、次のObservableを作る。
-        return source.flatMap( dbdata => this.retrieve( dbdata ) );
+         return obs;
     }
     
+    // Firebaseの性質上、配列はすべて作り直しなのでこの構成にしている
+    getAll(){
+        let source = this.af.database.list( this.root ) as Observable<any>;
+        let obs = source.flatMap( dbdatum => {
+            // Firebaseから取得した配列の要素数分のObservableを用意し、Observableの配列に格納
+            let observables = new Array<Observable<any>>( dbdatum.length );
+            for( let i = 0; i < dbdatum.length; i++ ) {
+                observables[i] = this._composeModel( dbdatum[i] );
+            }
+            
+            // from, mergeAll: Observableの配列を並列処理
+            // take: 全てのデータが揃うまでは後段に渡さない
+            // toArray: 結果を配列に変換
+            return Observable.from( observables ).mergeAll().take( dbdatum.length ).toArray();
+        } );
+        return obs;
+    }
+ 
     // 強制的に追加する
     set( model: MODEL ): Promise<void> {
         let source = this.af.database.object( this.url( model ) );
-        return source.set( this.store( model ) ) as Promise<void>;
+        return source.set( this._decomposeNewModel( model ) ) as Promise<void>;
     }
 
+    // 一部だけ直す
     update( model: MODEL ): Promise<void> {
         let source = this.af.database.object( this.url( model ) );
-        return source.update( this.store( model ) ) as Promise<void>;
-    }
-    
-
-    // Firebaseの性質上、配列はすべて作り直し
-    // 冗長な処理ではあるが、必要なこと
-    getAll(){
-        let source = this.af.database.list( this.root ) as Observable<any>;
-        let obs = source.flatMap( dbdatas => {
-            // Firebaseから配列が繰るごとに以下のObservableを返す
-            return Observable.from( dbdatas )                                  // 配列のデータをそれぞれに対して処理すrObservableを作る
-                            .flatMap( dbdata => this.retrieve( dbdata ) )      // 要素ごとに、サーバ上のデータをあMODELに変換
-                            .take( dbdatas.length ).toArray();
-        } );
-        return obs;
+        return source.update( this._decomposeUpdatedModel( model ) ) as Promise<void>;
     }
 }
 
@@ -126,12 +138,15 @@ export class ChildDb extends AbstractMapper<ChildClass> {
     id( model: ChildClass ): string {
         return model.id;
     }
-    
-    store( model: ChildClass ): any {
+
+    _decomposeNewModel( model: ChildClass ): any {
+        return { n: model.name };
+    }
+    _decomposeUpdatedModel( model: ChildClass ): any {
         return { n: model.name };
     }
     
-    retrieve( dbmodel: any ): Observable<ChildClass> {
+    _composeModel( dbmodel: any ): Observable<ChildClass> {
         // 単純な値の場合、一つの値を返すobservableを作ればよい
         return Observable.of( new ChildClass( dbmodel.$key, dbmodel.n ) );
     }
@@ -198,14 +213,17 @@ export class ParentDb2 extends AbstractCompositeMapper<ParentClass> {
     id( model: ParentClass ): string {
         return model.id;
     }
-    
-    store( model: ParentClass ): any {
+
+    _decomposeNewModel( model: ParentClass ): any {
+        return { n: model.name, eid: model.childA.id, fid: model.childB.id };
+    }
+    _decomposeUpdatedModel( model: ParentClass ): any {
         return { n: model.name, eid: model.childA.id, fid: model.childB.id };
     }
     
-    retrieve( dbmodel: any ): Observable<ParentClass> {
+    _composeModel( dbmodel: any ): Observable<ParentClass> {
         return this.createChildObserver( dbmodel ).map( children => {
-            return new ParentClass( '0','0', children['eid'], children['fid']);            
+            return new ParentClass( dbmodel.$key, dbmodel.n, children['eid'], children['fid']);            
         } );
     }
 }

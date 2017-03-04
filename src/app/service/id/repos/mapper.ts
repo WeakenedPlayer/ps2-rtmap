@@ -41,13 +41,22 @@ export abstract class AbstractMapper<MODEL> {
          return obs;
     }
     
-    // Firebaseの性質上、配列はすべて作り直し
+    // Firebaseの性質上、配列はすべて作り直しなのでこの構成にしている
     getAll(){
         let source = this.af.database.list( this.root ) as Observable<any>;
-        let obs = source.map( db => {
-            console.log( db );
-            return db;
+        let obs = source.flatMap( dbdatum => {
+            // Firebaseから取得した配列の要素数分のObservableを用意し、Observableの配列に格納
+            let observables = new Array<Observable<any>>( dbdatum.length );
+            for( let i = 0; i < dbdatum.length; i++ ) {
+                observables[i] = this._composeModel( dbdatum[i] );
+            }
+            
+            // from, mergeAll: Observableの配列を並列処理
+            // take: 全てのデータが揃うまでは後段に渡さない
+            // toArray: 結果を配列に変換
+            return Observable.from( observables ).mergeAll().take( dbdatum.length ).toArray();
         } );
+        return obs;
     }
  
     // 強制的に追加する
