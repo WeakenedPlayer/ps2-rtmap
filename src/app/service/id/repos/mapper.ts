@@ -1,18 +1,15 @@
 // rxjs
-import { Observable, Subscriber, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 
 // firebase
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
-import * as firebase from 'firebase';       // required for timestamp
+import * as firebase from 'firebase';
 
 /* ####################################################################################################################
- * Firebaseのキャッシュ
- * 起動直後の読み込みは遅い(接続時間があるためか?): 1.0-1.5s位かかる
- * 起動後のあるデータの初回読み込み: 0.2-0.5s位かかる
- * 同じ個所の読み込み: 1msかからない
+ * タイムスタンプ
+ * この値をFirebaseに格納すると、自動でUniqueなタイムスタンプが作られる。
  * ################################################################################################################# */
-
-
+export const Timestamp = firebase.database.ServerValue.TIMESTAMP;
 
 /* ####################################################################################################################
  * 抽象Mapper
@@ -25,36 +22,31 @@ export abstract class AbstractMapper<MODEL> {
         return this.root + '/' + this.id( model );
     }
     
-    // URLに使用する、IDに該当する値を取得する
-    protected abstract id( model: MODEL ): string;
-
-    // 
-    protected abstract _decomposeNewModel( model: MODEL ): any;
-    protected abstract _decomposeUpdatedModel( model: MODEL ): any;
-    protected abstract _composeModel( retrievedData: any ): Observable<MODEL>;
+    protected abstract id( model: MODEL ): string;                              // MODELから ID 情報を取得する(URLに使用するため)
+    protected abstract _decomposeNewModel( model: MODEL ): any;                 // データベースに格納する値を作る(新規作成時)
+    protected abstract _decomposeUpdatedModel( model: MODEL ): any;             // データベースに格納する値を作る(更新時)
+    protected abstract _composeModel( retrievedData: any ): Observable<MODEL>;  // MODELに復元する
  
     // IDを指定して、該当するオブジェクトを取得する
     get( id: string ): Observable<MODEL> {
         let source = this.af.database.object( this.root + '/' + id ) as Observable<any>;
-        let obs = source.flatMap( dbdata => this._composeModel( dbdata ) );
-        // 取得したデータ(dbdata)を使って、次のObservableを作る。
-         return obs;
+        return source.flatMap( dbdata => this._composeModel( dbdata ) );
     }
     
-    // Firebaseの性質上、配列はすべて作り直しなのでこの構成にしている
-    getAll(){
+    getAll(): Observable<MODEL[]>{
+        // 備考: Firebaseのlistは、一要素の変更があっても全要素が更新される。
+        // Firebaseから配列を一式もらうごとに、データベースに格納したデータをMODELに変形するObservableを後段に渡す
         let source = this.af.database.list( this.root ) as Observable<any>;
         let obs = source.flatMap( dbdatum => {
-            // Firebaseから取得した配列の要素数分のObservableを用意し、Observableの配列に格納
             let observables = new Array<Observable<any>>( dbdatum.length );
             for( let i = 0; i < dbdatum.length; i++ ) {
                 observables[i] = this._composeModel( dbdatum[i] );
             }
-            
-            // from, mergeAll: Observableの配列を並列処理
-            // take: 全てのデータが揃うまでは後段に渡さない
-            // toArray: 結果を配列に変換
-            return Observable.from( observables ).mergeAll().take( dbdatum.length ).toArray();
+
+            return Observable.from( observables )           // Observable の配列の全要素
+                             .mergeAll()                    // ↑ を並列に実行
+                             .take( dbdatum.length )        // ↑ 配列の要素数だけ集まるまで待機する
+                             .toArray();                    // ↑ を配列にまとめて後段に渡す
         } );
         return obs;
     }
@@ -72,61 +64,82 @@ export abstract class AbstractMapper<MODEL> {
     }
 }
 /* ####################################################################################################################
- * 外部キーに対応するためのマッパー
- * あらかじめhas(**)で指定したメンバに格納した値は外部キーとして扱われる
- * compositeMapper.has( entity,'serverKey' );
- * -> composeModel( dbmodel ){
- *      getChildrenObserver( dbmodel ).map(  )
- * }
- * クラスを継承して使うか、外部から情報を与えて作る? 
- * どちらが良いか?
- * どちらの使いかt内も対応できるようにする。
- * 面倒なのは子オブザーバの作成...keyの設定とか
+ * 子要素が揃っているか確認するために使う「積算」クラス。外部には公開しない。
+ * http://reactivex.io/documentation/operators/scan.html
  * ################################################################################################################# */
+class Accumulator {
+    private finishedCount: number = 0;
+    private elementCount: number = 0;
+    private _accumulatedValues: { [key:string]: any } = {};
+    constructor( public key: string = "", public value: any = null ){}
 
-export abstract class AbstractCompositeMapper<MODEL> extends AbstractMapper<MODEL> {
-    children: { [key:string]: AbstractMapper<any> } = {};
+    // 子要素の数を設定するとともに、取得完了カウンタを0に戻す
+    resetCount( elementCount: number ): Accumulator {
+        this.finishedCount = 0;
+        this.elementCount = elementCount;
+        return this;
+    }
+    
+    // 子要素を積算する
+    accumulate( item: Accumulator ): Accumulator {
+        if( !this._accumulatedValues[ item.key ] ) {
+            // 初めて取得した子要素があったら、取得完了カウンタを増やす
+            this.finishedCount++;
+        }
+        this._accumulatedValues[ item.key ] = item.value;
+        return this;
+    }
+    
+    get accumulatedValues(): { [key:string]: any } {
+        return this._accumulatedValues;
+    }
+    
+    isFinished(): boolean {
+        return ( this.finishedCount == this.elementCount );
+    }
+}
+
+/* ####################################################################################################################
+ * JoinMapper
+ * 外部キーと、対応する mapper を指定すると、Joinした結果を返すための mapper。
+ * 配列を読み出すのは高コストになるので、極力オブジェクト単体に対して使うこと。
+ * (Firebaseの仕組み上、Joinするより非正規化した方が良いので、ある程度低速なのは仕方ない)
+ * 
+ * 使い方:
+ * このクラスを継承したクラスで以下を実行すること。
+ * [1] has( key, mapper ) を実行し、外部キーとそれに対応する mapper を登録する。
+ * [2] _composeModel 実装時、メソッド内で以下を実行する。 children には、[1]で登録した key に、mapperから取得した値が格納される。
+ *     this.getChildren( firebaseから読みだしたデータ ).map( children => ... ) 
+ * [3] _decomposeNewModel / _decomposeUpdatedModel 実装時、[1]で登録した key に外部キーを格納する。 
+ * ################################################################################################################# */
+export abstract class AbstractJoinMapper<MODEL> extends AbstractMapper<MODEL> {
+    private children: { key: string, mapper: AbstractMapper<any> }[] = [];
     constructor( af: AngularFire, root: string ) {
         super( af, root );
     }
     
-    has( key: string, mapper: AbstractMapper<any> ) {
+    protected has( key: string, mapper: AbstractMapper<any> ) {
         // key: 外部キーに相当
-        this.children[ key ] = mapper;
+        this.children.push( { key: key, mapper: mapper } );
     }
-    
+
     // DBから取得したデータをもとに、オブザーバを作る
-    // 既にあったらダブらないようにする
-    createChildObserver( dbdata: any ){
-        // オブザーバ内で使用する変数:　副作用を意図的に使っている
-        let unfinishedChildrenCount: number = 0;                    // 残りの子要素数
-        let finishedChildren: { [ key: string ]: boolean } = {};    // 取得が完了した要素
-        let latestChildren: { [ key: string ]: any } = {};          // 最新の子要素
-        let observables: Observable<any>[] = [];                    // 子要素のオブザーバ
-
+    protected getChildren( dbdata: any ){
         // 全ての子要素用のオブザーバを作成し、配列にまとめる
-        for( let key in this.children ){
-            finishedChildren[ key ] = false;
-            unfinishedChildrenCount++;
-            
-            observables.push( this.children[ key ].get( dbdata[ key ] ).map( child => {     
-                return { key: key, value: child };
-            } ) );
+        let observables = new Array<Observable<Accumulator>>( this.children.length);
+        for( let i = 0; i < observables.length; i++ ) {
+            observables[i] = this.children[i].mapper
+                .get( dbdata[ this.children[i].key ] )
+                .map( child =>  new Accumulator( this.children[i].key, child ) );
         }
-
-        // 全ての子要素の Observableを並列で実行
-        return Observable.from( observables ).mergeAll()
-            .map( ( keyValue )=> {
-                // observableをまとめた後で副作用のある操作を実施
-
-                if( !finishedChildren[ keyValue.key ] ) {
-                    finishedChildren[ keyValue.key ] = true; 
-                    unfinishedChildrenCount--;
-                }
-                // 最新の値を保持
-                latestChildren[ keyValue.key ] = keyValue.value;
-                return latestChildren;
-            } )
-            .filter( () => unfinishedChildrenCount == 0 );  // 未取得の子要素があれば待機する
+        
+        // 積算のための最初の要素を生成するobservable
+        let firstObservable = Observable.of( new Accumulator().resetCount( observables.length ) );
+        
+        return firstObservable                                          // 積算用の最初の要素
+               .concat( Observable.from( observables ).mergeAll() )     // ↑ が実行された後、子要素用のオブザーバを並列で実行する
+               .scan( ( acc, item ) => acc.accumulate( item ) )         // ↑ の結果を積算する
+               .filter( acc => acc.isFinished() )                       // ↑ すべての子要素が取得できるまでは後段にデータを渡さない
+               .map( acc => acc.accumulatedValues );                    // ↑ 後段に、積算した結果のみを渡す = 子要素の[key,value] が読み出せるようになる
     }
 }
