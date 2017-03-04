@@ -25,8 +25,7 @@ parentDb: Mapper.ParentDb;
 parentDb2: Mapper.ParentDb2;
     constructor( private af: AngularFire, private http: Http ) { 
         this.childDb = new Mapper.ChildDb( af, '/test/mapper' );
-        this.parentDb = new Mapper.ParentDb( af, '/test/multi', this.childDb );
-        this.parentDb2 = new Mapper.ParentDb2( af, '/test/multi', this.childDb );
+         this.parentDb2 = new Mapper.ParentDb2( af, '/test/multi', this.childDb );
         /*
         let test = new AclSample.Test();
         try {
@@ -53,20 +52,23 @@ parentDb2: Mapper.ParentDb2;
 
     test(){
         console.time('xyz');
-        let subscription = this.parentDb.get( 'mxyz' ).subscribe( result => {
+        let subscription = this.parentDb2.get( 'mxyz' ).subscribe( result => {
+          console.timeEnd('xyz');
           console.log( result );
-            subscription.unsubscribe();
         });
     }
     test2(){
-        let subscription = this.parentDb2.get( 'aaaaa' ).subscribe( result => {
+        console.time('aaaaa');
+        let subscription = this.parentDb2.get('mxyz').subscribe( result => {
+            console.timeEnd('aaaaa');
             console.log( result );
-        }); 
+        });
     }
     test3(){
-        console.time('abc');
-        let subscription = this.childDb.get( 'abc' ).subscribe( result => {
-            // console.log( result );
+        console.time('aaaaa');
+        let subscription = this.parentDb2.getAll().subscribe( result => {
+            console.timeEnd('aaaaa');
+            console.log( result );
         });
     }
 }

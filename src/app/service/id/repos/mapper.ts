@@ -12,29 +12,51 @@ import * as firebase from 'firebase';       // required for timestamp
  * 同じ個所の読み込み: 1msかからない
  * ################################################################################################################# */
 
+
+
+/* ####################################################################################################################
+ * 抽象Mapper
+ * Firebaseへの格納・取り出しを行う。
+ * 継承して、MODEL(ローカルのオブジェクト)とデータベースに格納するオブジェクトを対応付ける。
+ * ################################################################################################################# */
 export abstract class AbstractMapper<MODEL> {
     constructor( private af: AngularFire, private readonly root: string ) {}
     private url( model: MODEL ) {
         return this.root + '/' + this.id( model );
     }
+    
+    // URLに使用する、IDに該当する値を取得する
     protected abstract id( model: MODEL ): string;
+
+    // 
     protected abstract _decomposeNewModel( model: MODEL ): any;
     protected abstract _decomposeUpdatedModel( model: MODEL ): any;
     protected abstract _composeModel( retrievedData: any ): Observable<MODEL>;
  
+    // IDを指定して、該当するオブジェクトを取得する
     get( id: string ): Observable<MODEL> {
         let source = this.af.database.object( this.root + '/' + id ) as Observable<any>;
         let obs = source.flatMap( dbdata => this._composeModel( dbdata ) );
         // 取得したデータ(dbdata)を使って、次のObservableを作る。
          return obs;
     }
+    
+    // Firebaseの性質上、配列はすべて作り直し
+    getAll(){
+        let source = this.af.database.list( this.root ) as Observable<any>;
+        let obs = source.map( db => {
+            console.log( db );
+            return db;
+        } );
+    }
  
- // 強制的に追加する
+    // 強制的に追加する
     set( model: MODEL ): Promise<void> {
         let source = this.af.database.object( this.url( model ) );
         return source.set( this._decomposeNewModel( model ) ) as Promise<void>;
     }
 
+    // 一部だけ直す
     update( model: MODEL ): Promise<void> {
         let source = this.af.database.object( this.url( model ) );
         return source.update( this._decomposeUpdatedModel( model ) ) as Promise<void>;
@@ -68,151 +90,34 @@ export abstract class AbstractCompositeMapper<MODEL> extends AbstractMapper<MODE
     // 既にあったらダブらないようにする
     createChildObserver( dbdata: any ){
         // オブザーバ内で使用する変数:　副作用を意図的に使っている
-        let remainingChildren: number = 0;                          // 残りの子要素数
+        let unfinishedChildrenCount: number = 0;                    // 残りの子要素数
         let finishedChildren: { [ key: string ]: boolean } = {};    // 取得が完了した要素
-        let retrievedChildren: { [ key: string ]: any } = {};       // 取得した要素
-        let observers: { [ key: string ]: any }[] = [];             // 子オブザーバ
-        
-        // 全ての子要素
+        let latestChildren: { [ key: string ]: any } = {};          // 最新の子要素
+        let observables: Observable<any>[] = [];                    // 子要素のオブザーバ
+
+        // 全ての子要素用のオブザーバを作成し、配列にまとめる
         for( let key in this.children ){
             finishedChildren[ key ] = false;
-            remainingChildren = remainingChildren + 1;
+            unfinishedChildrenCount++;
             
-            // 子要素を作成
-            observers.push( this.children[ key ].get( dbdata[ key ] ).map( child => {
-                if( !finishedChildren[ key ] ) {
-                    finishedChildren[ key ] = true; 
-                    remainingChildren = remainingChildren　-　1;
-                }
-                retrievedChildren[ key ] = child;
-                return retrievedChildren;
+            observables.push( this.children[ key ].get( dbdata[ key ] ).map( child => {     
+                return { key: key, value: child };
             } ) );
         }
-        
-        return Observable.merge( observers ).filter(　()　=> ( remainingChildren === 0 ) )
-                 .map(　()=> retrievedChildren );
-    }
-}
-/* ####################################################################################################################
- * 並列オブザーバ
- * 複数のオブザーバをまとめたもの
- * combineLatestのようなものになる
- * ################################################################################################################# */
 
-/*
-class ParallelObserver<T> extends Observable<T> {
-    remainingChildren: number = 0;                          // 残りの子要素数
-    finishedChildren: { [ key: string ]: boolean } = {};    // 取得が完了した要素
-    retrievedChildren: { [ key: string ]: any } = {};       // 取得した要素
-    observers: { [ key: string ]: any }[] = [];             // 子オブザーバ
+        // 全ての子要素の Observableを並列で実行
+        return Observable.from( observables ).mergeAll()
+            .map( ( keyValue )=> {
+                // observableをまとめた後で副作用のある操作を実施
 
-    constructor(){
-        
-    }
-    return Observable.create( subscriber => {
-        // オブザーバ内で使用する変数:　副作用を意図的に使っている
-        let remainingChildren: number = 0;                          // 残りの子要素数
-        let finishedChildren: { [ key: string ]: boolean } = {};    // 取得が完了した要素
-        let retrievedChildren: { [ key: string ]: any } = {};       // 取得した要素
-        
-        // 全ての子要素
-        for( let key in this.children ){
-            finishedChildren[ key ] = false;
-            remainingChildren = remainingChildren + 1;
-            
-            // creating child observer
-            observers.push( this.subMappers[ key ].get( dbdata[ key ] ).map( child => {
-                if( !finishedChildren[ key ] ) {
-                    finishedChildren[ key ] = true; 
-                    remainingChildren = remainingChildren　-　1;
+                if( !finishedChildren[ keyValue.key ] ) {
+                    finishedChildren[ keyValue.key ] = true; 
+                    unfinishedChildrenCount--;
                 }
-                retrievedChildren[ key ] = child;
-                return retrievedChildren;
-            } ) );
-        }
-        
-        return Observable.merge( observers )
-　　　　　　　　　　　　　　　　　.filter(　child　=> ( remainingChildren === 0 ) )
-             .map( obj => {
-                 return new ParentClass( '0','0', obj['A'], obj['B']);
-         } ).subscribe( result => {
-             subscriber.next( result );
-         });
-    } );
-    
-}
-
-export abstract class ｋｋ<MODEL> {
-    subMappers: { [ key: string ]: AbstractMapper<any> } = {};
-    constructor( private af: AngularFire, private readonly root: string ) {}
-    private url( model: MODEL ) {
-        return this.root + '/' + this.id( model );
-    }
-    protected abstract id( model: MODEL ): string;
-    protected abstract _decomposeNewModel( model: MODEL ): any;
-    protected abstract _decomposeUpdatedModel( model: MODEL ): any;
-    protected abstract _composeModel( retrievedData: any ): Observable<MODEL>;
-    
-    get( id: string ): Observable<MODEL> {
-        let source = this.af.database.object( this.root + '/' + id ) as Observable<any>;
-        let obs = source.flatMap( dbdata => this._composeModel( dbdata ) );
-        // 取得したデータ(dbdata)を使って、次のObservableを作る。
-        if( this.subMappers ) {
-            return obs;
-        } else {
-            return obs;
-        }
-    }
-    
-    // 強制的に追加する
-    add( model: MODEL ): Promise<void> {
-        let source = this.af.database.object( this.url( model ) );
-        return source.set( this._decomposeNewModel( model ) ) as Promise<void>;
-    }
-
-    update( model: MODEL ): Promise<void> {
-        let source = this.af.database.object( this.url( model ) );
-        return source.update( this._decomposeUpdatedModel( model ) ) as Promise<void>;
-    }
-
-    // composeの過程で、更に子要素にアクセスが必要な場合に追加する
-    has( mapper: AbstractMapper<any>, name: string ) {
-        // 重複した場合は前のが消される
-        this.subMappers[ name ] = mapper;
-    }
-    
-    createChildObservers( dbdata: any ){
-        return Observable.create( subscriber => {
-            // オブザーバ内で使用する変数:　副作用を意図的に使っている
-            let remainingChildren: number = 0;                          // 残りの子要素数
-            let finishedChildren: { [ key: string ]: boolean } = {};    // 取得が完了した要素
-            let retrievedChildren: { [ key: string ]: any } = {};       // 取得した要素
-            let observers: { [ key: string ]: any }[] = [];             // 子オブザーバ
-            
-            // 全ての子要素
-            for( let key in this.subMappers ){
-                finishedChildren[ key ] = false;
-                remainingChildren = remainingChildren + 1;
-                
-                // creating child observer
-                observers.push( this.subMappers[ key ].get( dbdata[ key ] ).map( child => {
-                    if( !finishedChildren[ key ] ) {
-                        finishedChildren[ key ] = true; 
-                        remainingChildren = remainingChildren　-　1;
-                    }
-                    retrievedChildren[ key ] = child;
-                    return retrievedChildren;
-                } ) );
-            }
-            
-            return Observable.merge( observers )
-　　　　　　　　　　　　　　　　　　　　　.filter(　child　=> ( remainingChildren === 0 ) )
-                 .map( obj => {
-                     return new ParentClass( '0','0', obj['A'], obj['B']);
-             } ).subscribe( result => {
-                 subscriber.next( result );
-             });
-        } );
+                // 最新の値を保持
+                latestChildren[ keyValue.key ] = keyValue.value;
+                return latestChildren;
+            } )
+            .filter( () => unfinishedChildrenCount == 0 );  // 未取得の子要素があれば待機する
     }
 }
-*/

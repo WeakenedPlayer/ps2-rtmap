@@ -41,6 +41,12 @@ import * as firebase from 'firebase';       // required for timestamp
             return subscription;
         } );
     }
+        let obs = source.flatMap( dbdatas => {                                 // Firebaseから配列が繰るごとに以下のObservableを返す
+            return Observable.from( dbdatas )                                  // 配列のデータをそれぞれに対して処理すrObservableを作る
+                            .flatMap( dbdata => this.retrieve( dbdata ) )      // 要素ごとに、サーバ上のデータをあMODELに変換
+                            .map( model => [ model ] )                         // MODELを1要素だけ含む配列に変換
+                            .scan( ( acc, val ) => acc.concat( val ) )         // MODELの配列を1つずつつなぐ
+                            //.last();                                           // 結合完了後のみ後続の処理へ渡す
  * ################################################################################################################# */
 
 // 対象をFirebaseに保存・取得するためのクラス
@@ -84,6 +90,20 @@ export abstract class AbstractMapper<MODEL> {
         let source = this.af.database.object( this.url( model ) );
         return source.update( this.store( model ) ) as Promise<void>;
     }
+    
+
+    // Firebaseの性質上、配列はすべて作り直し
+    // 冗長な処理ではあるが、必要なこと
+    getAll(){
+        let source = this.af.database.list( this.root ) as Observable<any>;
+        let obs = source.flatMap( dbdatas => {
+            // Firebaseから配列が繰るごとに以下のObservableを返す
+            return Observable.from( dbdatas )                                  // 配列のデータをそれぞれに対して処理すrObservableを作る
+                            .flatMap( dbdata => this.retrieve( dbdata ) )      // 要素ごとに、サーバ上のデータをあMODELに変換
+                            .take( dbdatas.length ).toArray();
+        } );
+        return obs;
+    }
 }
 
 
@@ -117,49 +137,6 @@ export class ChildDb extends AbstractMapper<ChildClass> {
     }
 }
 
-export class ParentDb extends AbstractMapper<ParentClass> {
-    constructor( af: AngularFire, root: string, private childDb: ChildDb ) {
-        super( af, root );
-    }
-    id( model: ParentClass ): string {
-        return model.id;
-    }
-    
-    store( model: ParentClass ): any {
-        return { n: model.name, eid: model.childA.id, fid: model.childB.id };
-    }
-    
-    retrieve( dbmodel: any ): Observable<ParentClass> {
-        return Observable.create( subscriber => {
-            let cnt =2;
-            let tmp: { [key:string]: any } = {};
-            let finished: { [key:string]: boolean } = {};
-            let childA = this.childDb.get( dbmodel.eid ).map( child => {
-                if( !finished['A'] ) {
-                    finished['A'] = true; 
-                    cnt = cnt-1;
-                }
-                tmp['A'] = child;
-                console.log( cnt );
-                return tmp;
-            } );
-            let childB = this.childDb.get( dbmodel.fid ).map( child => {
-                if( !finished['B'] ) {
-                    finished['B'] = true; 
-                    cnt = cnt-1;
-                }
-                tmp['B'] = child;
-                console.log( cnt );
-                return tmp;
-            } );
-            return Observable.merge( childA, childB ).filter( (child) => ( cnt === 0 ) ).map( obj => {
-                return new ParentClass( '0','0', obj['A'], obj['B']);
-            } ).subscribe( result => {
-                subscriber.next( result );
-            });
-        } );
-    }
-}
 
 
 
@@ -178,34 +155,35 @@ export abstract class AbstractCompositeMapper<MODEL> extends AbstractMapper<MODE
     // 既にあったらダブらないようにする
     createChildObserver( dbdata: any ){
         // オブザーバ内で使用する変数:　副作用を意図的に使っている
-        let remainingChildren: number = 0;                          // 残りの子要素数
+        let unfinishedChildrenCount: number = 0;                    // 残りの子要素数
         let finishedChildren: { [ key: string ]: boolean } = {};    // 取得が完了した要素
-        let retrievedChildren: { [ key: string ]: any } = {};       // 取得した要素
-        let observers: Observable<any>[] = [];             // 子オブザーバ
+        let latestChildren: { [ key: string ]: any } = {};          // 最新の子要素
+        let observables: Observable<any>[] = [];                    // 子要素のオブザーバ
 
-        // console.log( dbdata ); OK
-        // 全ての子要素
+        // 全ての子要素用のオブザーバを作成し、配列にまとめる
         for( let key in this.children ){
             finishedChildren[ key ] = false;
-            remainingChildren = remainingChildren + 1;
+            unfinishedChildrenCount++;
             
-            // 子要素を作成
-            // ダブらないようにするのもあり
-            observers.push( this.children[ key ].get( dbdata[ key ] ).map( child => {
-                if( !finishedChildren[ key ] ) {
-                    finishedChildren[ key ] = true; 
-                    remainingChildren = remainingChildren　-　1;
-                }
-                retrievedChildren[ key ] = child;                
-                return retrievedChildren;
+            observables.push( this.children[ key ].get( dbdata[ key ] ).map( child => {     
+                return { key: key, value: child };
             } ) );
         }
 
-        // memo: mergeAllはObservableの結合をする。
-        return Observable.from( observers ).mergeAll().map( ( unknown )=> {
-            // console.log( retrievedChildren );   null
-            return retrievedChildren;
-        } );
+        // 全ての子要素の Observableを並列で実行
+        return Observable.from( observables ).mergeAll()
+            .map( ( keyValue )=> {
+                // observableをまとめた後で副作用のある操作を実施
+
+                if( !finishedChildren[ keyValue.key ] ) {
+                    finishedChildren[ keyValue.key ] = true; 
+                    unfinishedChildrenCount--;
+                }
+                // 最新の値を保持
+                latestChildren[ keyValue.key ] = keyValue.value;
+                return latestChildren;
+            } )
+            .filter( () => unfinishedChildrenCount == 0 );  // 未取得の子要素があれば待機する
     }
 }
 
@@ -227,7 +205,6 @@ export class ParentDb2 extends AbstractCompositeMapper<ParentClass> {
     
     retrieve( dbmodel: any ): Observable<ParentClass> {
         return this.createChildObserver( dbmodel ).map( children => {
-            // console.log( children );   null
             return new ParentClass( '0','0', children['eid'], children['fid']);            
         } );
     }
