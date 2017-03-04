@@ -9,7 +9,7 @@ import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, Angular
 
 import 'rxjs/add/operator/toPromise';
 
-import { AclSample } from './service/id/sample';
+import { AclSample,  Mapper } from './service/id/sample';
 
 @Component({
   selector: 'app-root',
@@ -20,34 +20,28 @@ import { AclSample } from './service/id/sample';
 
 export class AppComponent implements OnInit {
     selectedId: string;
-//    userRepos: Repository.UserRepository;
-//    reqRepos: Repository.RequestRepository;
+    childDb: Mapper.ChildDb;
+parentDb: Mapper.ParentDb;
+parentDb2: Mapper.ParentDb2;
     constructor( private af: AngularFire, private http: Http ) { 
-//        this.userRepos = new Repository.UserRepository( this.af, '/test' );
-//        this.reqRepos = new Repository.RequestRepository( this.af, this.userRepos, '/test' );
+        this.childDb = new Mapper.ChildDb( af, '/test/mapper' );
+        this.parentDb = new Mapper.ParentDb( af, '/test/multi', this.childDb );
+        this.parentDb2 = new Mapper.ParentDb2( af, '/test/multi', this.childDb );
         /*
-        let execRepos = new Repository.ExecuterRepository( af, '/test' );
-
-        let required = new Acl.PermissionSet();
-        required.add( new Acl.Permission( 'x' ) );
-        required.add( new Acl.Permission( 'y' ) );
-        let test = new Acl.PermissionSet();
-        test.add( new Acl.Permission( 'test1' ) );
-        test.add( new Acl.Permission( 'test2' ) );
-        
-        let user = new User( '8PGAlqf37mU1jwzQ7t9UNllm73t1',false,1 );
-        let exe: Acl.Executer;
-        
-        execRepos.getByUser( user ).subscribe( x => { console.log( 'test'); console.log(x); } );
-        */
-        //this.testAttribute();
-        //this.testExpAttribute();
         let test = new AclSample.Test();
         try {
             test.test();
         } catch( err ) {
             console.log( err );
         }
+        
+        let appTest = new LogicSample.AppModelTest(af);
+        this.childDb.set( new Mapper.ChildClass( 'test', 'combined' ) );
+        this.childDb.set( new Mapper.ChildClass( 'fun', 'time' ) );
+        this.parentDb.set( new Mapper.ParentClass( 'mxyz', 'xyz multi', 
+                new Mapper.ChildClass( 'test', 'combined' ),
+                new Mapper.ChildClass( 'fun', 'time') ) ); 
+        */   
     }
     
     ngOnInit() {
@@ -56,42 +50,23 @@ export class AppComponent implements OnInit {
         console.log( id );
         this.selectedId = id;
     }
-//    
-//    testAttribute() {
-//        let adminAttr = new Acl.AttributeKey( 'admin' );
-//        let mapAccessAttr = new Acl.AttributeKey( 'mapAccess' );
-//        
-//        let hasAdminCondition = new Acl.Condition( 'admin', ( attr ) => { return ( attr.get( adminAttr ) === true ) } );
-//        let hasMapAccessCondition = new Acl.Condition( 'mapAccess', ( attr ) => { return ( attr.get( mapAccessAttr ) === true ) } );
-//        
-//        let attr = new Acl.Attribute( 'attrs' );
-//        attr.set( adminAttr, true );
-//        attr.set( mapAccessAttr, false );
-//
-//        let andCond = new Acl.AndConditionSet( [ hasAdminCondition, hasMapAccessCondition ] );
-//        console.log( andCond.test( attr ) );
-//        
-//
-//        let orCond = new Acl.OrConditionSet( [ hasAdminCondition, hasMapAccessCondition ] );
-//        console.log( orCond.test( attr ) );
-//        console.log(  attr  );
-//    }
-////    
-//    testExpAttribute() {
-//        let prototype = new ExpAttr.Attribute( new ExpAttr.AttributeKey( 'root' ) );
-//        prototype.addKey( new ExpAttr.AttributeKey( 'hungly' ) );
-//        prototype.addKey( new ExpAttr.AttributeKey( 'sleepy' ) );
-//        prototype.addKey( new ExpAttr.AttributeKey( 'tired' ) );
-//
-//        let sub = new ExpAttr.Attribute( new ExpAttr.AttributeKey( 'sub' ) );
-//        sub.addKey( new ExpAttr.AttributeKey( 'active' ) );
-//        sub.addKey( new ExpAttr.AttributeKey( 'updatedAt' ) );
-//        
-//        prototype.addChild( sub );
-//        
-//        console.log( prototype.clone( new ExpAttr.AttributeKey( 'cloned root' ) ));
-//
-//        prototype.removeAllKey();
-//        console.log( prototype );
-//    }
+
+    test(){
+        console.time('xyz');
+        let subscription = this.parentDb.get( 'mxyz' ).subscribe( result => {
+          console.log( result );
+            subscription.unsubscribe();
+        });
+    }
+    test2(){
+        let subscription = this.parentDb2.get( 'aaaaa' ).subscribe( result => {
+            console.log( result );
+        }); 
+    }
+    test3(){
+        console.time('abc');
+        let subscription = this.childDb.get( 'abc' ).subscribe( result => {
+            // console.log( result );
+        });
+    }
 }

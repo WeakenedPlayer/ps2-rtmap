@@ -29,14 +29,13 @@ export class CharacterProfileComponent implements OnInit {
     }
 
     ngOnInit() {
-        let subscriber = this.route.params
+        this.route.params
         .switchMap( ( params: Params ) => {
             // param が変わるたびに呼ばれるので、その度に CensusAPIに問い合わせる
             let characterId: string = params['id'];
             return this.census.getCharacterProfiles( [ characterId ] );
         } )
         .subscribe( profiles => {
-            subscriber.unsubscribe();
             // CensusAPIの問い合わせ結果を格納する
             // 結果が取得できていれば以降の処理を継続
             if( profiles ) {

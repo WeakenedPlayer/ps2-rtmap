@@ -1,14 +1,22 @@
-import { Acl, Identification, User } from '../index';
+import { Acl, Identification, User, Repository } from '../index';
 import { Census } from '../../census';
 import { Observable, Subscriber } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import * as ServiceId from './service-id';
 import 'rxjs/add/operator/toPromise';
 
+//firebase
+import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
+import * as firebase from 'firebase';       // required for timestamp
+
 export class AppModelTest {
-    census: Census.Api;
-    constructor( private user: User, private http: Http ){
-        this.census = new Census.Api( http, ServiceId.CENSUS_SERVICE_ID );
+    constructor( af: AngularFire ) {
+        let dom = new Repository.Domain( 'test' );
+        let ent = new Repository.Entity( 'aaa' );
+        let val = new Repository.Value( 'bbb' );
+
+        dom.add( ent );
+        dom.add( val );
     }
        
     test(){
@@ -24,8 +32,8 @@ export class IdentificationModel {
 export class RequestViewModel {
     selectedProfile: Census.CharacterProfile = null;
 
-
-    constructor( private user: User, private census: Census.Api ) {
+    constructor( private user: User, private census: Census.Service ) {
+        
     }
 
     getCharacterNameList( partialName: string ): Observable<Census.CharacterName[]>{
@@ -34,9 +42,14 @@ export class RequestViewModel {
 
     selectCharacter( cid: string ): void {
         this.census.getCharacterProfiles( [ cid ] ).toPromise().then( profile => {
-            this.selectedProfile = profile[0];
+            if( profile ) {
+                this.selectedProfile = profile[0];
+            }
         } );
     }
     
+    registerRequest(): void {
+        
+    }
 }
 
