@@ -33,29 +33,39 @@ export class ChildDb extends AbstractClassMapper<ChildClass> {
         super( af );
     }
     
-    getBaseUrl(): string {
+    protected getBaseUrl(): string {
         return this.root;
     }
     
-    getId( model: ChildClass ): string {
+    protected getId( model: ChildClass ): string {
         return model.id;
     }
 
-    decomposeNewModel( model: ChildClass ): any {
+    protected decomposeNewModel( model: ChildClass ): any {
         return { n: model.name, t: Timestamp };
     }
     
-    decomposeUpdatedModel( model: ChildClass ): any {
+    protected decomposeUpdatedModel( model: ChildClass ): any {
         return { n: model.name };
     }
     
-    composeModel( dbmodel: any ): ChildClass {
+    protected composeModel( dbmodel: any ): ChildClass {
         return new ChildClass( dbmodel.$key, dbmodel.n, dbmodel.t );
     }
 }
 
-/*
 export class ParentDb extends AbstractJoinMapper<ParentClass> {
+     static createServerData( isNew: boolean, name: string, eid: string, fid: string, gid: string ) {
+         let tmp = {
+                 n: name,
+                 eid: eid,
+                 fid: fid,
+                 gid: gid,
+                 if( isNew ){ return { t: Timestamp } }
+             };
+         return tmp
+    }
+
     constructor( af: AngularFire, private root: string, private childDb: ChildDb ) {
         super( af );        
         this.has( 'eid', childDb );
@@ -72,18 +82,36 @@ export class ParentDb extends AbstractJoinMapper<ParentClass> {
     }
 
     decomposeNewModel( model: ParentClass ): any {
-        return { n: model.name, eid: model.childA.id, fid: model.childB.id, gid: model.childB.id };
+        return super.setRaw( model.id, ParentDb.createServerData( true,
+                                                                  model.name,
+                                                                  model.childA.id,
+                                                                  model.childB.id,
+                                                                  model.childB.id ) );
     }
     decomposeUpdatedModel( model: ParentClass ): any {
-        return { n: model.name, eid: model.childA.id, fid: model.childB.id, gid: model.childB.id };
+        return super.setRaw( model.id, ParentDb.createServerData( false,
+                                                                  model.name,
+                                                                  model.childA.id,
+                                                                  model.childB.id,
+                                                                  model.childB.id ) );
+    }
+
+    setByRaw( id: string, name: string, eid: string, fid: string, gid: string ): Promise<void> {
+        return super.setRaw( id, ParentDb.createServerData( true, name, eid, fid, gid ) );
     }
     
-    composeModel( dbmodel: any ): Observable<ParentClass> {
-        return this.getChildren( dbmodel ).map( children => {
-            return new ParentClass( dbmodel.$key, dbmodel.n, children['eid'], children['fid'], children['gid']);            
-        } );
+    updateByRaw( id: string, name: string, eid: string, fid: string, gid: string ): Promise<void> {
+        return super.updateRaw( id, ParentDb.createServerData( true, name, eid, fid, gid ) );
     }
-}*/
+    
+    composeModel( datum: any ): ParentClass{
+        return new ParentClass( datum.raw.$key,
+                                datum.raw.n,
+                                datum.children['eid'],
+                                datum.children['fid'],
+                                datum.children['gid']);            
+    }
+}
 
 export class RawDb extends AbstractRawMapper {
     constructor( af: AngularFire, private root: string ) {
@@ -101,32 +129,57 @@ export class RawDb extends AbstractRawMapper {
 
 export class Sample {
     childDb: ChildDb;
-//    parentDb: ParentDb;
+    parentDb: ParentDb;
     rawDb: RawDb;
     public createdChildren: string[] = [];
     constructor( private af: AngularFire ) {
-        this.childDb = new ChildDb( af, '/mapper/test/children' );
-        this.rawDb = new RawDb( af, '/mapper/test/raw' );
-       //this.parentDb = new ParentDb( af, '/mapper/test/parent', this.childDb );
+        this.childDb = new ChildDb( af, '/mapper/test/children/' );
+        this.rawDb = new RawDb( af, '/mapper/test/raw/' );
+        this.parentDb = new ParentDb( af, '/mapper/test/parent/', this.childDb );
         
         
     }
     test1() {
-        this.childDb.push( new ChildClass( 'a', 'hello' ) ).then( key => {
-            this.createdChildren.push( key );
-        } );
+        this.createChildren();
     }
     test2(){
-        console.time( 'raw' );
-        this.rawDb.push( { a: '1', b: '2' } ).then( key => {
-            console.timeEnd( 'raw' );
-            this.rawDb.getAll().take(1).subscribe( result => console.log( result ) );
-        } );
+        this.createParent( 'abcd' );
     }
     test3(){
         console.time( 'class' );
         this.childDb.get( this.createdChildren[0] ).subscribe( result => {
             console.timeEnd( 'class' );
+        } );
+    }
+    createChildren(){
+        this.childDb.set( new ChildClass( 'abc', 'hello abc' ) );
+        this.childDb.set( new ChildClass( 'def', 'hello def' ) );
+        this.childDb.set( new ChildClass( 'ghi', 'hello ghi' ) );
+    }
+
+    createParent( id: string ) {
+        console.time( 'class' );
+        this.parentDb.createByRaw( 'parentTest', 'hi', 'abc', 'ghi', 'def' ).then(
+                result => console.log( result ));
+    }
+
+    updateParent( id: string ) {
+        console.time( 'class' );
+        this.parentDb.updateByRaw( 'parentTest', 'hi', 'abc', 'ghi', 'def' ).then(
+                result => console.log( result ));
+    }
+    
+    getParent( id: string ) {
+        this.parentDb.get( id ).subscribe( result => {
+            console.timeEnd( 'class' );
+            console.log( result );
+        } );
+    }
+    createRaw() {
+        console.time( 'raw' );
+        this.rawDb.pushRaw( { a: '1', b: '2' } ).then( key => {
+            console.timeEnd( 'raw' );
+            this.rawDb.getAllRaw().take(1).subscribe( result => console.log( result ) );
         } );
     }
 }

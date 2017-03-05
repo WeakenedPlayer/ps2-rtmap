@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import * as Mapper from './index';
 
 // firebase
-import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
+import { AngularFire } from 'angularfire2';
 
 /* ####################################################################################################################
  * ほぼそのままマッピングするもの
@@ -11,15 +11,15 @@ import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, Angular
  * ################################################################################################################# */
 export abstract class AbstractRawMapper {
     constructor( private af: AngularFire ) {}
-    protected abstract getBaseUrl(): string;
+    protected abstract getBaseUrl( obj: any ): string;
     protected abstract getId( data: any ): string; 
     
     private getUrl( id: string ): string {
-        return this.getBaseUrl() + '/' + id;
+        return this.getBaseUrl() + id;
     }
     
     // IDを指定して、該当するオブジェクトを取得する
-    get( id: string ): Observable<any> {
+    getRaw( id: string ): Observable<any> {
         if( id ) {
             return this.af.database.object( this.getUrl( id ) ) as Observable<any>;
         } else {
@@ -29,13 +29,12 @@ export abstract class AbstractRawMapper {
     }
 
     // 一括取得
-    getAll(): Observable<any[]>{
+    getAllRaw(): Observable<any[]>{
         return this.af.database.list( this.getBaseUrl() ) as Observable<any>;
     }
  
     // 追加する(既存の場合は強制的に書き換わる)
-    set( data: any ): Promise<void>{
-        let id = this.getId( data );
+    setRaw( id: string, data: any ): Promise<void>{
         if( id ) {
             // IDがあれば実行
             let db = this.af.database.object( this.getUrl( id ) );
@@ -47,8 +46,7 @@ export abstract class AbstractRawMapper {
     }
     
     // 変更のあったところだけ書き換える(同実装するかはお任せ)…場合によってはタイムスタンプを除外するのみ
-    update( data: any ): Promise<void> {
-        let id = this.getId( data );
+    updateRaw( id, data: any ): Promise<void> {
         if( id ) {
             // IDがあれば実行
             let db = this.af.database.object( this.getUrl( id ) );
@@ -61,7 +59,7 @@ export abstract class AbstractRawMapper {
 
     // IDは無視して追加する
     // ID追加後のモデルが必要となるので、Promiseで返す。
-    push( data: any ): Promise<string> {
+    pushRaw( data: any ): Promise<string> {
         let db = this.af.database.list( this.getBaseUrl() );
         
         // FirebaseのThenableReferenceから、Key(新しく追加したオブジェクトのID)を返す
