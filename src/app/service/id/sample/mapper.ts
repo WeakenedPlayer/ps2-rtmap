@@ -7,8 +7,8 @@ import 'rxjs/add/operator/toPromise';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 import * as firebase from 'firebase';       // required for timestamp
 
+import {  AbstractClassMapper, Timestamp, AbstractKeyValue } from '../repos';
 
-import { AbstractJoinMapper, AbstractClassMapper, AbstractMapper, Timestamp, AbstractRawMapper } from '../repos';
 
 export class ChildClass {
     constructor( public readonly id: string,
@@ -16,12 +16,84 @@ export class ChildClass {
                  public readonly createdAt?: string ){}
 }
 
+
+class ChildKeyValue extends AbstractKeyValue<ChildClass> {
+    protected object2Key( model: ChildClass ): any {
+        return [ model.id ];
+    }
+
+    protected object2DbValue( model: ChildClass, isNewObj: boolean, opt?: any ): any {
+        if( isNewObj ){
+            return { n: model.name, t: Timestamp };            
+        } else {
+            return { n: model.name };
+        }
+    }
+    
+    protected dbKeyValue2Object( keys: string[], value: any ): ChildClass {
+        return new ChildClass( keys[0], value.n, value.t );
+    }
+    
+    setKeyById( id: string ) {
+        if( id ) {      
+            this.setKeys( [ id ] );
+        } else {
+            console.log( 'err' );
+        }        
+    }
+}
+
+export class ChildDb extends AbstractClassMapper<ChildClass> {
+    constructor( af: AngularFire, root: string ) { super( af, root ); }
+    
+    getById( id: string ) {
+        let keyValue = new ChildKeyValue();
+        keyValue.setKeyById( id );
+        return this.get( keyValue );
+    }
+
+    setChild( child: ChildClass ) {
+        let keyValue = new ChildKeyValue( child, true );
+        super.set( keyValue );
+    }
+    updateChild( child: ChildClass ) {
+        let keyValue = new ChildKeyValue( child, false );
+        super.update( keyValue );
+    }
+}
+
+
+
+export class Sample {
+    childDb: ChildDb;
+    public createdChildren: string[] = [];
+    constructor( private af: AngularFire ) {
+        this.childDb = new ChildDb( af, '/mapper/test/children/' );
+    }
+    test1(){
+        console.time('child');
+        this.childDb.getById( 'abc' ).subscribe( result => {
+            console.timeEnd( 'child' );
+            console.log( result );
+        } );
+    }
+    test2(){
+        this.childDb.setChild( new ChildClass( 'xxx', 'hi' ) );
+    }
+    test3(){
+        this.childDb.updateChild( new ChildClass( 'xxx', 'hi' ) );
+        }
+}
+/*
+import { AbstractJoinMapper, AbstractClassMapper, AbstractMapper, Timestamp, AbstractRawMapper } from '../repos';
+
+
 export class ParentClass {
     constructor( public readonly id: string,
                  public readonly name: string,
                  public childA: ChildClass,
                  public childB: ChildClass,
-                 public childC: ChildClass ){}
+                 public childC: ChildClass ){}    
 }
 
 export class InfoClass {
@@ -134,29 +206,48 @@ export class RawDb extends AbstractRawMapper {
     }
 }
 
+export class PathValue<T> {
+    constructor( public readonly path: string[], public readonly value: T ){}
+}
+
+
+
 export class Sample {
     childDb: ChildDb;
     parentDb: ParentDb;
     rawDb: RawDb;
+    rawDb2: RawDb2;
     public createdChildren: string[] = [];
     constructor( private af: AngularFire ) {
         this.childDb = new ChildDb( af, '/mapper/test/children/' );
-        this.rawDb = new RawDb( af, '/mapper/test/raw/' );
+        this.rawDb = new RawDb( af, '/mapper/test/children/' );
         this.parentDb = new ParentDb( af, '/mapper/test/parent/', this.childDb );
+        this.rawDb2 = new RawDb2( af );
         
         
     }
+    
     test1() {
-        this.createParent( 'abcd' );
+        let a = { a: 10, b: 20, c: 30 };
+        let b = a;
+        b.a = 200;
+
+        console.log( a );
+        console.log( b );
+        /*
+        let path = new ObjPath( '/abc/cde' );
+        let obj = { id: 'objId', aaa: 'hello', bbb: 'world' };
+        this.rawDb2.pushRaw( path, obj );
     }
+    
     test2(){
-        this.updateParent( 'abcd' );
+        let a = { a:'1', b:'2', c:'x'};
+        let x = ( { a: '1' } as typeof a );
+        x.b = 's';
+        console.log( x );
     }
     test3(){
-        console.time( 'class' );
-        this.childDb.get( this.createdChildren[0] ).subscribe( result => {
-            console.timeEnd( 'class' );
-        } );
+        this.getRaw();
     }
     createChildren(){
         this.childDb.set( new ChildClass( 'abc', 'hello abc' ) );
@@ -187,17 +278,8 @@ export class Sample {
             this.rawDb.getAllRaw().take(1).subscribe( result => console.log( result ) );
         } );
     }
-}
-
-
-
-
-
-
-
-
-
-
-
-
+    getRaw() {
+        this.rawDb.getRaw( 'abc' ).subscribe( result => console.log( result) );
+    }
+}*/
 

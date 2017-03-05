@@ -3,7 +3,8 @@
 //export * from './executer-repository';
 export * from './common';
 // export * from './attribute';
-export * from './mapper';
+//export * from './mapper';
 export * from './raw-mapper';
-export * from './class-mapper';
-export * from './join-mapper';
+//export * from './class-mapper';
+//export * from './join-mapper';
+//export * from './raw2';
