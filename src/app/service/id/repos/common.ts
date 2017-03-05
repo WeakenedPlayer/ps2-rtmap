@@ -1,3 +1,25 @@
+import * as firebase from 'firebase';
+
+/* ####################################################################################################################
+ * タイムスタンプ
+ * この値をFirebaseに格納すると、自動でUniqueなタイムスタンプが作られる。
+ * ################################################################################################################# */
+export const Timestamp = firebase.database.ServerValue.TIMESTAMP;
+
+/* ####################################################################################################################
+ * エラー
+ * ################################################################################################################# */
+export class NoIdError implements Error {
+    name: string;
+    message: string;
+    constructor() {
+        this.name = 'No ID error';
+        this.message = 'ID is not specified.';
+    }
+}
+
+
+
 export class UidEmptyError implements Error {
     name: string;
     message: string;
@@ -23,8 +45,4 @@ export class NotFoundError implements Error {
         this.name = 'Data not found';
         this.message = 'Data not found';
     }
-}
-
-export class ServerData {
-    
 }

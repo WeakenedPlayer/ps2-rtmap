@@ -5,24 +5,7 @@ import { Observable } from 'rxjs';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 import * as firebase from 'firebase';
 
-/* ####################################################################################################################
- * タイムスタンプ
- * この値をFirebaseに格納すると、自動でUniqueなタイムスタンプが作られる。
- * ################################################################################################################# */
-export const Timestamp = firebase.database.ServerValue.TIMESTAMP;
-
-/* ####################################################################################################################
- * タイムスタンプ
- * この値をFirebaseに格納すると、自動でUniqueなタイムスタンプが作られる。
- * ################################################################################################################# */
-class NoIdError implements Error {
-    name: string;
-    message: string;
-    constructor() {
-        this.name = 'No ID error';
-        this.message = 'ID is not specified.';
-    }
-}
+import * as Mapper from './index';
 
 /* ####################################################################################################################
  * 抽象Mapper
@@ -81,8 +64,7 @@ export abstract class AbstractMapper<MODEL> {
             let db = this.af.database.object( this.getUrl( id ) );
             return db.set( this.decomposeNewModel( model ) ) as Promise<void>;
         } else {
-            // IDがない場合は修正できないため例外
-            throw new NoIdError;
+            throw new Mapper.NoIdError;
         }
     }
     
@@ -94,8 +76,7 @@ export abstract class AbstractMapper<MODEL> {
             let db = this.af.database.object( this.getUrl( id ) );
             return db.set( this.decomposeUpdatedModel( model ) ) as Promise<void>;
         } else {
-            // IDがない場合は修正できないため例外
-            throw new NoIdError;
+            throw new Mapper.NoIdError;
         }
     }
 
@@ -119,8 +100,7 @@ export abstract class AbstractMapper<MODEL> {
                 let promise = this.af.database.object( this.getUrl( id ) ).remove();                
             } );
         } else {
-            // IDがない場合は修正できないため例外
-            throw new NoIdError;
+            throw new Mapper.NoIdError;
         }
     }
 }
