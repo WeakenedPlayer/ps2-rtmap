@@ -8,7 +8,7 @@ import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, Angular
 import * as firebase from 'firebase';       // required for timestamp
 
 
-import { AbstractJoinMapper, AbstractMapper, Timestamp, AbstractRawMapper } from '../repos';
+import { AbstractJoinMapper, AbstractClassMapper, AbstractMapper, Timestamp, AbstractRawMapper } from '../repos';
 
 export class ChildClass {
     constructor( public readonly id: string,
@@ -28,7 +28,7 @@ export class InfoClass {
     constructor( public readonly id: string, public info: string ){}
 }
 
-export class ChildDb extends AbstractMapper<ChildClass> {
+export class ChildDb extends AbstractClassMapper<ChildClass> {
     constructor( af: AngularFire, private root: string ) {
         super( af );
     }
@@ -49,12 +49,12 @@ export class ChildDb extends AbstractMapper<ChildClass> {
         return { n: model.name };
     }
     
-    composeModel( dbmodel: any ): Observable<ChildClass> {
-        return Observable.of( new ChildClass( dbmodel.$key, dbmodel.n, dbmodel.t ) );
+    composeModel( dbmodel: any ): ChildClass {
+        return new ChildClass( dbmodel.$key, dbmodel.n, dbmodel.t );
     }
 }
 
-
+/*
 export class ParentDb extends AbstractJoinMapper<ParentClass> {
     constructor( af: AngularFire, private root: string, private childDb: ChildDb ) {
         super( af );        
@@ -83,9 +83,9 @@ export class ParentDb extends AbstractJoinMapper<ParentClass> {
             return new ParentClass( dbmodel.$key, dbmodel.n, children['eid'], children['fid'], children['gid']);            
         } );
     }
-}
+}*/
 
-export class RawDb extends AbstractRawMapper<ChildClass> {
+export class RawDb extends AbstractRawMapper {
     constructor( af: AngularFire, private root: string ) {
         super( af );
     }
@@ -97,50 +97,37 @@ export class RawDb extends AbstractRawMapper<ChildClass> {
     getId( model: ChildClass ): string {
         return model.id;
     }
-
-    decomposeNewModel( model: ChildClass ): any {
-        return { n: model.name, t: Timestamp };
-    }
-    
-    decomposeUpdatedModel( model: ChildClass ): any {
-        return { n: model.name };
-    }
-    
-    composeModel( dbmodel: any ): ChildClass{
-        return new ChildClass( dbmodel.$key, dbmodel.n, dbmodel.t );
-    }
 }
 
 export class Sample {
     childDb: ChildDb;
-    parentDb: ParentDb;
+//    parentDb: ParentDb;
     rawDb: RawDb;
     public createdChildren: string[] = [];
     constructor( private af: AngularFire ) {
         this.childDb = new ChildDb( af, '/mapper/test/children' );
-        this.rawDb = new RawDb( af, '/mapper/test/children' );
-        this.parentDb = new ParentDb( af, '/mapper/test/parent', this.childDb );
+        this.rawDb = new RawDb( af, '/mapper/test/raw' );
+       //this.parentDb = new ParentDb( af, '/mapper/test/parent', this.childDb );
+        
+        
     }
     test1() {
-        Observable.fromPromise( this.childDb.push( new ChildClass( 'a', 'hello' ) ) )
-                  .flatMap( key => {
-                      this.createdChildren.push( key );
-                      return this.childDb.get( key );
-                  } ).toPromise().then( result=> console.log(result));
+        this.childDb.push( new ChildClass( 'a', 'hello' ) ).then( key => {
+            this.createdChildren.push( key );
+        } );
     }
     test2(){
-        Observable.fromPromise( this.rawDb.push( new ChildClass( 'a', 'goodbye' ) ) )
-        .flatMap( key => {
-            this.createdChildren.push( key );
-            return this.rawDb.get( key ).take(1);
-        } ).toPromise().then( result=> console.log(result));
+        console.time( 'raw' );
+        this.rawDb.push( { a: '1', b: '2' } ).then( key => {
+            console.timeEnd( 'raw' );
+            this.rawDb.getAll().take(1).subscribe( result => console.log( result ) );
+        } );
     }
     test3(){
-        console.time('aaaaa');
-        let subscription = this.parentDb.getAll().subscribe( result => {
-            console.timeEnd('aaaaa');
-            console.log( result );
-        });
+        console.time( 'class' );
+        this.childDb.get( this.createdChildren[0] ).subscribe( result => {
+            console.timeEnd( 'class' );
+        } );
     }
 }
 
