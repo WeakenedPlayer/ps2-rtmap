@@ -55,16 +55,25 @@ export class ChildDb extends AbstractClassMapper<ChildClass> {
 }
 
 export class ParentDb extends AbstractJoinMapper<ParentClass> {
-     static createServerData( isNew: boolean, name: string, eid: string, fid: string, gid: string ) {
-         let tmp = {
-                 n: name,
-                 eid: eid,
-                 fid: fid,
-                 gid: gid,
-                 if( isNew ){ return { t: Timestamp } }
-             };
-         return tmp
-    }
+    static createServerData( name: string, eid: string, fid: string, gid: string ) {
+        let tmp = {
+                n: name,
+                eid: eid,
+                fid: fid,
+                gid: gid,
+                t: Timestamp
+            };
+        return tmp
+   }
+    static updateServerData( name: string, eid: string, fid: string, gid: string ) {
+        let tmp = {
+                n: name,
+                eid: eid,
+                fid: fid,
+                gid: gid
+            };
+        return tmp
+   }
 
     constructor( af: AngularFire, private root: string, private childDb: ChildDb ) {
         super( af );        
@@ -82,26 +91,24 @@ export class ParentDb extends AbstractJoinMapper<ParentClass> {
     }
 
     decomposeNewModel( model: ParentClass ): any {
-        return super.setRaw( model.id, ParentDb.createServerData( true,
-                                                                  model.name,
+        return super.setRaw( model.id, ParentDb.createServerData( model.name,
                                                                   model.childA.id,
                                                                   model.childB.id,
                                                                   model.childB.id ) );
     }
     decomposeUpdatedModel( model: ParentClass ): any {
-        return super.setRaw( model.id, ParentDb.createServerData( false,
-                                                                  model.name,
-                                                                  model.childA.id,
-                                                                  model.childB.id,
-                                                                  model.childB.id ) );
+        return super.updateRaw( model.id, ParentDb.updateServerData( model.name,
+                                                                     model.childA.id,
+                                                                     model.childB.id,
+                                                                     model.childB.id ) );
     }
 
     setByRaw( id: string, name: string, eid: string, fid: string, gid: string ): Promise<void> {
-        return super.setRaw( id, ParentDb.createServerData( true, name, eid, fid, gid ) );
+        return super.setRaw( id, ParentDb.createServerData( name, eid, fid, gid ) );
     }
     
     updateByRaw( id: string, name: string, eid: string, fid: string, gid: string ): Promise<void> {
-        return super.updateRaw( id, ParentDb.createServerData( true, name, eid, fid, gid ) );
+        return super.updateRaw( id, ParentDb.updateServerData( name, eid, fid, gid ) );
     }
     
     composeModel( datum: any ): ParentClass{
@@ -140,10 +147,10 @@ export class Sample {
         
     }
     test1() {
-        this.createChildren();
+        this.createParent( 'abcd' );
     }
     test2(){
-        this.createParent( 'abcd' );
+        this.updateParent( 'abcd' );
     }
     test3(){
         console.time( 'class' );
@@ -159,14 +166,12 @@ export class Sample {
 
     createParent( id: string ) {
         console.time( 'class' );
-        this.parentDb.createByRaw( 'parentTest', 'hi', 'abc', 'ghi', 'def' ).then(
-                result => console.log( result ));
+        this.parentDb.setByRaw( 'parentTest', 'hi', 'abc', 'ghi', 'def' );
     }
 
     updateParent( id: string ) {
         console.time( 'class' );
-        this.parentDb.updateByRaw( 'parentTest', 'hi', 'abc', 'ghi', 'def' ).then(
-                result => console.log( result ));
+        this.parentDb.updateByRaw( 'parentTest', 'hi', 'abc', 'ghi', 'def' );
     }
     
     getParent( id: string ) {

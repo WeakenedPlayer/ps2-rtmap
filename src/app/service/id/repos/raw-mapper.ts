@@ -11,7 +11,7 @@ import { AngularFire } from 'angularfire2';
  * ################################################################################################################# */
 export abstract class AbstractRawMapper {
     constructor( private af: AngularFire ) {}
-    protected abstract getBaseUrl( obj: any ): string;
+    protected abstract getBaseUrl( obj?: any ): string;
     protected abstract getId( data: any ): string; 
     
     private getUrl( id: string ): string {
@@ -50,7 +50,7 @@ export abstract class AbstractRawMapper {
         if( id ) {
             // IDがあれば実行
             let db = this.af.database.object( this.getUrl( id ) );
-            return db.set( data ) as Promise<void>;
+            return db.update( data ) as Promise<void>;
         } else {
             // IDがない場合は修正できないため例外
             throw new Mapper.NoIdError;
