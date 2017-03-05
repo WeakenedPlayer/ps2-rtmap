@@ -1,6 +1,7 @@
 // rxjs
 import { Observable, Subscriber, Subscription } from 'rxjs';
 import 'rxjs/add/operator/mergeAll';
+import 'rxjs/add/operator/toPromise';
 
 // firebase
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
@@ -208,47 +209,56 @@ export class InfoClass {
 }
 
 export class ChildDb extends AbstractMapper<ChildClass> {
-    constructor( af: AngularFire, root: string ) {
-        super( af, root );
+    constructor( af: AngularFire, private root: string ) {
+        super( af );
     }
     
-    id( model: ChildClass ): string {
+    getBaseUrl(): string {
+        return this.root;
+    }
+    
+    getId( model: ChildClass ): string {
         return model.id;
     }
 
-    _decomposeNewModel( model: ChildClass ): any {
+    decomposeNewModel( model: ChildClass ): any {
         return { n: model.name, t: Timestamp };
     }
     
-    _decomposeUpdatedModel( model: ChildClass ): any {
+    decomposeUpdatedModel( model: ChildClass ): any {
         return { n: model.name };
     }
     
-    _composeModel( dbmodel: any ): Observable<ChildClass> {
+    composeModel( dbmodel: any ): Observable<ChildClass> {
         return Observable.of( new ChildClass( dbmodel.$key, dbmodel.n, dbmodel.t ) );
     }
 }
 
 
 export class ParentDb extends AbstractJoinMapper<ParentClass> {
-    constructor( af: AngularFire, root: string, private childDb: ChildDb ) {
-        super( af, root );
+    constructor( af: AngularFire, private root: string, private childDb: ChildDb ) {
+        super( af );        
         this.has( 'eid', childDb );
         this.has( 'fid', childDb );
         this.has( 'gid', childDb );
     }
-    id( model: ParentClass ): string {
+
+    getBaseUrl(): string {
+        return this.root;
+    }
+    
+    getId( model: ParentClass ): string {
         return model.id;
     }
 
-    _decomposeNewModel( model: ParentClass ): any {
+    decomposeNewModel( model: ParentClass ): any {
         return { n: model.name, eid: model.childA.id, fid: model.childB.id, gid: model.childB.id };
     }
-    _decomposeUpdatedModel( model: ParentClass ): any {
+    decomposeUpdatedModel( model: ParentClass ): any {
         return { n: model.name, eid: model.childA.id, fid: model.childB.id, gid: model.childB.id };
     }
     
-    _composeModel( dbmodel: any ): Observable<ParentClass> {
+    composeModel( dbmodel: any ): Observable<ParentClass> {
         return this.getChildren( dbmodel ).map( children => {
             return new ParentClass( dbmodel.$key, dbmodel.n, children['eid'], children['fid'], children['gid']);            
         } );
@@ -257,29 +267,19 @@ export class ParentDb extends AbstractJoinMapper<ParentClass> {
 export class Sample {
     childDb: ChildDb;
     parentDb: ParentDb;
-
+    public createdChildren: string[] = [];
     constructor( private af: AngularFire ) {
-        this.childDb = new ChildDb( af, '/test/mapper' );
-        this.parentDb = new ParentDb( af, '/test/multi', this.childDb );
+        this.childDb = new ChildDb( af, '/mapper/test/children' );
+        this.parentDb = new ParentDb( af, '/mapper/test/parent', this.childDb );
     }
-    
-    createChild( name: string ) {
-        this.childDb.set( new ChildClass( null, 'hello' ) );
-    }
-    
     test1() {
-        console.time('xyz');
-        let subscription = this.childDb.get( 'abc' ).subscribe( result => {
-            console.timeEnd('xyz');
-            console.log( result );
-        });
+        Observable.fromPromise( this.childDb.push( new ChildClass( 'a', 'hello' ) ) )
+                  .flatMap( key => {
+                      this.createdChildren.push( key );
+                      return this.childDb.get( key ).take(1);
+                  } ).toPromise().then( result=> console.log(result));
     }
     test2(){
-        console.time('aaaaa');
-        let subscription = this.parentDb.get('aaaaa').subscribe( result => {
-            console.timeEnd('aaaaa');
-            console.log( result );
-        });
     }
     test3(){
         console.time('aaaaa');

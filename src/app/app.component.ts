@@ -21,6 +21,7 @@ import { AclSample, Mapper } from './service/id/sample';
 export class AppComponent implements OnInit {
     selectedId: string;
     mapperTest: Mapper.Sample;
+    createdChildren: string[];
     constructor( private af: AngularFire, private http: Http ) { 
         this.mapperTest = new Mapper.Sample( af );
     }
