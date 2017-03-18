@@ -54,11 +54,15 @@ export class ChildDb extends AbstractClassMapper<ChildClass> {
 
     setChild( child: ChildClass ) {
         let keyValue = new ChildKeyValue( child, true );
-        super.set( keyValue );
+        return super._set( keyValue );
     }
     updateChild( child: ChildClass ) {
         let keyValue = new ChildKeyValue( child, false );
-        super.update( keyValue );
+        return super._update( keyValue );
+    }
+    pushChild( child: ChildClass ) {
+        let keyValue = new ChildKeyValue( child, true );
+        return super._push( keyValue );
     }
 }
 
@@ -81,8 +85,8 @@ export class Sample {
         this.childDb.setChild( new ChildClass( 'xxx', 'hi' ) );
     }
     test3(){
-        this.childDb.updateChild( new ChildClass( 'xxx', 'hi' ) );
-        }
+        this.childDb.pushChild( new ChildClass( null, 'hi' ) );
+    }
 }
 /*
 import { AbstractJoinMapper, AbstractClassMapper, AbstractMapper, Timestamp, AbstractRawMapper } from '../repos';
