@@ -1,15 +1,26 @@
 import { Component, OnInit } from '@angular/core';
-import { CensusService } from './service/census/census.service';
+import * as Census from './service/census';
+import { Headers, Http } from '@angular/http';
 
 import { FormControl } from '@angular/forms';
+
+import { User, Db, Acl } from './service';
+import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
+
+import 'rxjs/add/operator/toPromise';
+
+import { AclSample } from './sample';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
+
 export class AppComponent implements OnInit {
     selectedId: string;
-    constructor() {
+    createdChildren: string[];
+    constructor( private af: AngularFire, private http: Http ) { 
     }
     
     ngOnInit() {
@@ -17,5 +28,12 @@ export class AppComponent implements OnInit {
     characterSelected( id: string ){
         console.log( id );
         this.selectedId = id;
+    }
+
+    test(){
+    }
+    test2(){
+    }
+    test3(){
     }
 }

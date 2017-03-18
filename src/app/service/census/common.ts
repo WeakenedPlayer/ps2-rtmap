@@ -1,49 +1,53 @@
-import { Observable } from 'rxjs';
+import { Observable, Subscriber } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import 'rxjs/add/operator/toPromise';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/filter';
 
-class ServiceErrorResponse {
+class ServiceErrorResponse extends Error {
     // no data fournd, service unavailable etc...
-    error: string;
+    name: string = 'Census API Error'; 
+    message: string = 'Service unavailable or invalid query';
 }
 
 // Census APIとのやり取りの共通部分を担う基底クラス
 export abstract class QueryBase<ParameterT,ResponseT,ResultT> {
-    http: Http;
-    baseProvider: IBaseUrlProvider;
     protected abstract queryUrl( param: ParameterT ): string;
     protected abstract extract( response: ResponseT ): ResultT;
     
-    constructor( http: Http, baseProvider: IBaseUrlProvider ) {
-        this.http = http;
-        this.baseProvider = baseProvider;
+    constructor( private http: Http, private baseProvider: IBaseUrlProvider ) {
     }
 
+    get( param: ParameterT ): Observable<ResultT> {
+        return Observable.create( ( subscriber: Subscriber<ResultT> ) => {
+            this.http.get( this.baseProvider.get() + this.queryUrl( param ) )
+            .filter( response => {
+                if( response.status === 200 ) {
+                    // success
+                    return true;
+                } else {
+                    // error
+                    throw new ServiceErrorResponse;
+                }
+            } )
+            .map( filteredResponse => {
+                return this.extract( ( filteredResponse.json() ) as ResponseT );
+            } )
+            .subscribe( result => {
+                subscriber.next( result );
+                subscriber.complete();
+            } ) ;
+        } );
+    }
+    
     query( param: ParameterT ): Promise<ResultT> {
-        return this.http.get( this.baseProvider.base() + this.queryUrl( param ) )
-            .toPromise()
-            .then( jsonResponse => {
-                // JSON -> Object -> ResponseTにCast
-                let response = jsonResponse.json();
-                
-                // console.log( response );
-                return new Promise<ResultT>( ( resolve, reject ) => {
-                    // 何らかの理由でエラーなら errorメンバーを含むはず                    
-                    if( response.error ){
-                        // 異常応答時の処理
-                        reject( response );
-                    } else {
-                        // 正常応答時の処理
-                        let result = this.extract( response as ResponseT );
-                        resolve( result );
-                    }
-                } );
-        });
+        return this.get( param ).toPromise();
     }
 }
 
 export interface IBaseUrlProvider {
-    base(): string;
+    get(): string;
+    count(): string;
 }
 
 export class JoinQuery {
