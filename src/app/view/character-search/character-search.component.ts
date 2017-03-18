@@ -43,7 +43,6 @@ export class CharacterSearchComponent implements OnInit {
                 this.census.getCharacterNames( partialName )
                 .toPromise()
                 .then( result => {
-                    console.log( result );
                     this.candidates = result;
                 })
                 .catch( reason => {
