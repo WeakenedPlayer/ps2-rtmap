@@ -1,8 +1,9 @@
+
 export class User {
     constructor(
             public readonly uid: string,
             public disabled: boolean,
-            public ceatedAt: number ) {
+            public ceatedAt?: number ) {
     }
 
     isIdentical( uid: string ): boolean;
@@ -17,3 +18,4 @@ export class User {
         return ret;
     }
 }
+

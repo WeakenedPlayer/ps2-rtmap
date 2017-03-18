@@ -1,7 +1,6 @@
 // firebase
 import { DB } from './index';
-import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
-import * as firebase from 'firebase';
+import { AngularFire  } from 'angularfire2';
 import { Observable, Subscription, Subscriber } from 'rxjs';
 
 //単純に古いSubscriptionをUnsubscribeする
@@ -100,13 +99,13 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
             // 全ての子要素を並列して監視するObservable
             // 変化があったら子要素のKeyと、その値を、{key,value}の形式で後段に伝える。
             // TODO: 重複が増える使い方に備え、Subscriptionの管理を見直す
+            //       親要素の取得に失敗した場合を考慮する($exists == false)
             // ------------------------------------------------------------------------------------
             this.mapper.get( keys ).subscribe( dbData => {
                 // 親要素の再読出しに伴う処置
                 tmpDbData = dbData;
                 finishedCount = 0;
                 isFinished={};
-                
                 
                 // 子要素のSubscriptionを作成する
                 for( let k in this.dbSubscription ) {

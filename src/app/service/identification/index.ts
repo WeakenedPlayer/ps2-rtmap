@@ -1,4 +1,2 @@
-export * from './character';
-export * from './identity';
-export * from './request';
-export * from './session';
+import * as Identification from './modules';
+export { Identification };

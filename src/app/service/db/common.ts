@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import * as firebase from 'firebase';
 
-export const TimeStamp = firebase.database.ServerValue;
+export const TimeStamp = firebase.database.ServerValue.TIMESTAMP;
 /* ####################################################################################################################
  * DBからのデータとそれ以外をまとめた、データの復元に必要な情報一式
  * ################################################################################################################# */

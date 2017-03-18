@@ -1,3 +1,3 @@
 import * as AclSample from './acl';
-import * as Mapper from './mapper';
-export { AclSample, Mapper };
+import * as ReposSample from './repos';
+export { AclSample, ReposSample };
