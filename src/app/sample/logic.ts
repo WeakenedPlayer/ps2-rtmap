@@ -1,5 +1,5 @@
-import { Acl, Identification, User, Repository } from '../index';
-import { Census } from '../../census';
+import { Acl, Identification, User, Db } from '../service';
+import { Census } from '../service';
 import { Observable, Subscriber } from 'rxjs';
 import { Headers, Http } from '@angular/http';
 import * as ServiceId from './service-id';
@@ -11,12 +11,6 @@ import * as firebase from 'firebase';       // required for timestamp
 
 export class AppModelTest {
     constructor( af: AngularFire ) {
-        let dom = new Repository.Domain( 'test' );
-        let ent = new Repository.Entity( 'aaa' );
-        let val = new Repository.Value( 'bbb' );
-
-        dom.add( ent );
-        dom.add( val );
     }
        
     test(){

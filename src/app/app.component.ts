@@ -4,12 +4,12 @@ import { Headers, Http } from '@angular/http';
 
 import { FormControl } from '@angular/forms';
 
-import { User, Repository, Acl } from './service/id';
+import { User, Db, Acl } from './service';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 
 import 'rxjs/add/operator/toPromise';
 
-import { AclSample, Mapper } from './service/id/sample';
+import { AclSample } from './sample';
 
 @Component({
   selector: 'app-root',
@@ -17,13 +17,10 @@ import { AclSample, Mapper } from './service/id/sample';
   styleUrls: ['./app.component.scss'],
 })
 
-
 export class AppComponent implements OnInit {
     selectedId: string;
-    mapperTest: Mapper.Sample;
     createdChildren: string[];
     constructor( private af: AngularFire, private http: Http ) { 
-        this.mapperTest = new Mapper.Sample( af );
     }
     
     ngOnInit() {
@@ -34,12 +31,9 @@ export class AppComponent implements OnInit {
     }
 
     test(){
-        this.mapperTest.test1();
     }
     test2(){
-        this.mapperTest.test2();
     }
     test3(){
-        this.mapperTest.test3();
     }
 }

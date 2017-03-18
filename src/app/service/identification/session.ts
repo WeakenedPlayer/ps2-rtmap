@@ -1,66 +1,108 @@
-import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
-import * as firebase from 'firebase';       // required for timestamp
-import { Subscription, Observable } from 'rxjs';
-import * as UserIdentification from './common'; 
-import * as IdentificationRequest from './request'; 
+import { User, Identification } from '../index';
 
-export class SessionAcceptance {
-    static CreateSendData( cid: string, requestedAt: number ) {
-        return {
-            'cid': cid,
-            'requestedAt': requestedAt,
-            'token': SessionAcceptance.generateToken(),
-            'acceptedAt': firebase.database.ServerValue.TIMESTAMP
-        };
+export class IdentificationSessionOutdatedError implements Error {
+    public name: string;
+    public message: string;
+    constructor() {
+        this.name = 'Session outdated';
+        this.message = 'Original request is updated.';
     }
-    
-    static generateToken(): string {
-        return 'abcdefg';
-    }
-    
-    constructor(
-        public cid: string,
-        public appliedAt: number,
-        public token: string,
-        public acceptedAt: number,
-        $key?: string){}
 }
 
-export class SessionRepository {
-    static url( method: string, applicantUid: string, identifierUid: string ) {
-        return UserIdentification.URL_BASE + 'session/' + applicantUid + '/' + method + '/' + identifierUid;
-    }
-    static answerUrl( applicantUid: string, identifierUid: string ) {
-        return SessionRepository.url( 'answer', applicantUid, identifierUid );
-    }
-    static confirmationUrl( applicantUid: string, identifierUid: string ) {
-        return SessionRepository.url( 'confirmation', applicantUid, identifierUid );
-    }
-    static acceptanceUrl( applicantUid: string, identifierUid: string ) {
-        return SessionRepository.url( 'acceptance', applicantUid, identifierUid );
-    }
-    
-    constructor( private uid: string,private af: AngularFire ) {}
-    
-    // 本人確認要求を受け付ける
-    acceptRequest( requestData: IdentificationRequest.RequestData ): firebase.Promise<void> {
-        return this.af.database.object( SessionRepository.acceptanceUrl( this.uid, requestData.$key ) )
-                               .set( SessionAcceptance.CreateSendData( requestData.cid, requestData.requestedAt ) );
-    }
-
-    // 質問に答える
-    answerToQuestion( answer: string, identifierUid: string ): firebase.Promise<void> {
-        if( !answer && !identifierUid ) {
-            throw( 'no answer or identifierUid specified' );
-        }
-        return this.af.database.object( SessionRepository.answerUrl( this.uid, identifierUid ) ).set( answer );
-    }
-    
-    // 確認する
-    confirmAnswer( applicantUid: string ): firebase.Promise<void> {
-        if( !applicantUid ) {
-            throw( 'no applicantUid specified' );
-        }
-        return this.af.database.object( SessionRepository.confirmationUrl( applicantUid, this.uid ) ).set( firebase.database.ServerValue.TIMESTAMP );
+export class IdentificationRequesterUnmatchedError implements Error {
+    public name: string;
+    public message: string;
+    constructor() {
+        this.name = 'Requester unmatched.';
+        this.message = 'Requester unmatched.';
     }
 }
+
+// このオブジェクトを作るのは難しい。リポジトリにアクセスして使って作らないといけないのでFactoryが必要
+export class IdentificationSession {
+    private originalRequest: Identification.Request;         // uid -> Request
+    private snapshot: Identification.RequestSnapshot;
+    private acceptedBy: User;
+    private token: string;
+    private receivedToken: string;
+
+    // このセッションの有効性チェック
+    validateSession(): boolean {
+        // RULE: スナップショットとリクエストが同一であること
+        return this.originalRequest.isIdentical( this.snapshot );
+    }
+
+    // 新しいリクエストを受け入れるときの有効性チェック
+    validateNewRequest(): boolean {
+        // RULE: 更新時の新しいリクエストの条件 = 同一ユーザかつ更新されている
+        let res = ( this.originalRequest.isIdentical( this.snapshot ) )
+               && ( this.originalRequest.isUpdated( this.snapshot ) );      
+        return res;
+    }
+    
+    // 暫定: 乱数で6桁
+    private generateToken(): string {
+        let rnd: number;
+        let tmp: string;
+        let newToken: string;
+
+        rnd = Math.floor( 100000 * Math.random() );
+        tmp = '000000' + rnd.toString();
+        newToken = tmp.slice( 6 - tmp.length );
+        
+        return newToken;
+    }
+
+    // セッションの更新(新しいリクエストを受け入れる)
+    // 不変条件: トークンを新しくする
+    updateSession() {
+        if( !this.validateNewRequest() ){
+            throw new IdentificationRequesterUnmatchedError;
+        }
+        this.updateToken();
+        this.snapshot = this.originalRequest.takeSnapshot();
+    }
+
+    // 合言葉の更新
+    // 不変条件: 更新と同時に受け取った合言葉も消す
+    updateToken(): void {
+        if( !this.validateSession() ){
+            throw new IdentificationSessionOutdatedError;
+        }
+        // 新しい合言葉は絶対に一致しない
+        this.receivedToken = '******';
+        this.token = this.generateToken();
+    }
+
+    // 受け取った合言葉の入力
+    receiveToken( receivedToken: string ) {
+        if( !this.validateSession() ){
+            throw new IdentificationSessionOutdatedError;
+        }
+        this.receivedToken = receivedToken;
+    }
+
+    // 合言葉の判定
+    isTokenMatched(): boolean {
+        return this.token === this.receivedToken;
+    }
+    
+    getToken(): string {
+        // 確認者には見せないようにする(アプリケーション層の仕事)
+        return this.token;
+    }
+    
+    // 本人確認実施
+    identify(): Identification.UserIdentity {
+        if( !this.validateSession() ){
+            throw new IdentificationSessionOutdatedError;
+        }
+        return new Identification.UserIdentity(
+                this.originalRequest.user,
+                this.originalRequest.character,
+                this.acceptedBy,
+                null );
+    }
+}
+
+

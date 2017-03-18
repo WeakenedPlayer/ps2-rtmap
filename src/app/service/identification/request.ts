@@ -1,58 +1,48 @@
-import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
-import * as firebase from 'firebase';       // required for timestamp
-import { Subscription, Observable } from 'rxjs';
-import * as UserIdentification from './common'; 
+import { User, Identification } from '../index';
 
-// 本人確認申請用データ
-export class RequestData {
-    static CreateSendData( cid: string ) {
-        return { 'cid': cid, 'requestedAt': firebase.database.ServerValue.TIMESTAMP };
+/* ####################################################################################################################
+ * 要求 なんか変だけど UserIdentity(確認済み)とは分けて考える
+ * Userの属性に見えるが…一応ライフサイクルが違うので作成してある
+ * ほとんど値オブジェクトみたいなもの
+ * スナップショットを作る責務があるくらいか
+ * ################################################################################################################# */
+export class Request{
+    constructor(
+            public readonly user: User,
+            public readonly character: Identification.Character,
+            public readonly requestedAt?: number ) {
     }
-    // key = applicant uid set by Firebase
-    constructor( public cid: string, public requestedAt: number, public $key?: string ){}
+    
+    takeSnapshot(): RequestSnapshot {
+        return new RequestSnapshot(
+            this.user.uid,
+            this.character.cid,
+            this.requestedAt );
+    }
+    
+    isUpdated( snapshot: RequestSnapshot ): boolean {
+        return ( this.requestedAt > snapshot.requestedAt );
+    }
+    
+    isIdentical( snapshot: RequestSnapshot ): boolean {
+        return ( ( this.user.isIdentical( snapshot.uid ) )
+              && ( this.character.isIdentical( snapshot.cid ) )
+              && ( this.requestedAt === snapshot.requestedAt ) );
+    }
+    
+    isIdenticalUser( newRequest: Request ): boolean {
+        return this.user.isIdentical( newRequest.user );
+    }
 }
 
-// 本人確認申請
-export class RequestRepository {
-    constructor( private uid: string, private af: AngularFire ) {}
-    private url( uid: string ) { return UserIdentification.URL_BASE + 'request/' + uid; }
-
-    unregisterRequest(): Promise<void> {
-        return new Promise( ( resolve, reject ) => {
-            if( this.uid ) {
-                resolve( this.af.database.object( this.url( this.uid ) ).remove() );
-            } else {
-                reject( 'not logged in' );
-            }
-        });
-    }
-    
-    registerRequest( cid: string ): Promise<any> {
-        return new Promise( ( resolve, reject ) => {
-            if( this.uid ) {
-                resolve( this.af.database.object( this.url( this.uid ) ).set( RequestData.CreateSendData( cid ) ) );
-            } else {
-                reject( 'not logged in' );
-            }
-        });
-    }
-
-    getRequestObserver( applicantUid: string ): FirebaseObjectObservable<RequestData> {
-        return this.af.database.object( this.url( applicantUid ) );
-    }
-    
-    // 一度だけ申請を取得する
-    getRequestSnapshot( applicantUid: string ): Promise<RequestData> {
-        return new Promise<RequestData>( ( resolve, reject ) => {
-            // うまくいかないので暫定
-            let subscriber = this.af.database.object( this.url( applicantUid ) ).subscribe( result => {
-                subscriber.unsubscribe();
-                if( result ) {
-                    resolve( result );                    
-                } else {
-                    reject( 'get request rejected' );
-                }
-            } );
-        } );
+/* ####################################################################################################################
+ * 要求を受け付けた時のスナップショット = DBに格納する形
+ * ################################################################################################################# */
+export class RequestSnapshot {
+    // 新規に作る場合のみ
+    constructor(
+            public readonly uid: string,
+            public readonly cid: string,
+            public readonly requestedAt: number) {
     }
 }

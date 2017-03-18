@@ -1,5 +1,3 @@
-import * as Model from './index';
-
 export class User {
     constructor(
             public readonly uid: string,
@@ -19,5 +17,3 @@ export class User {
         return ret;
     }
 }
-
-

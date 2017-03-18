@@ -1,4 +1,4 @@
-import { Acl, User } from '../index';
+import { Acl, User } from '../service/index';
 
 class UserRequirement extends Acl.Requirement {
     constructor( private user1: User, private user2: User ) {
