@@ -60,8 +60,8 @@ $icon_color_active: lighten( $icon_color, 30% );
 
 .ui-toolbar-title {
   display: table-cell;
+  text-align: left;
   white-space: nowrap;
-  width: 1%;
   line-height: 1;
   margin: 0; 
   padding: 6px 6px;
