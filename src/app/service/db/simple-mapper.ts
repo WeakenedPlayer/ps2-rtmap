@@ -48,7 +48,7 @@ export abstract class SimpleMapper<T> implements DB.GroupMapper<T> {
         return Observable.create( ( subscriber: Subscriber<T> ) => {
             let subscription = this.mapper.get( keys ).subscribe( ( dbData ) => {
                 let result: T;
-                if( dbData.values.$exists ) {
+                if( dbData.values.$exists() ) {
                     result = this.db2obj( dbData.keys, dbData.values );
                 } else {
                     // Subscribeしていたデータが消滅したら null にする

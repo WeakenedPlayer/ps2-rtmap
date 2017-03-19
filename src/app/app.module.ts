@@ -8,7 +8,7 @@ import { AppComponent } from './app.component';
 import { AngularFireModule, AuthProviders, AuthMethods } from 'angularfire2';
 import { AlertModule } from 'ng2-bootstrap';
 
-import { Census } from './service/census';
+import { Census, Identification } from './service';
 
 const firebaseConfig = {
         apiKey: "AIzaSyDGS2xVjmK_q5HtLfOg5TztHz_Ftu00bQ8",
@@ -34,7 +34,7 @@ const firebaseAuthConfig = {
     HttpModule,AlertModule.forRoot(),
     AngularFireModule.initializeApp( firebaseConfig, firebaseAuthConfig )
   ],
-  providers: [ Census.Service ],
+  providers: [ Census.Service, Identification.Service ],
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }

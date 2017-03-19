@@ -12,7 +12,7 @@ import { AngularFire, AngularFireAuth } from 'angularfire2';
 import { Observable } from 'rxjs';
 
 // other imports
-import { Census } from '../../service/census';
+import { Census, Identification } from '../../service';
 import * as VM from './view-model';
 
 // TODO: ユーザの認証状態によって、この画面への遷移を禁止すること
@@ -28,11 +28,13 @@ export class CharacterProfileComponent implements OnInit {
     world: Census.World = null;
     onlineStatus: Census.CharacterOnlineStatus = null;
 
+
     testInput = new FormControl();
 
     constructor(
             private af: AngularFire,
             private census: Census.Service,
+            private idservice: Identification.Service,
             private route: ActivatedRoute,
             private router: Router,
             private location: Location ) {
@@ -46,8 +48,12 @@ export class CharacterProfileComponent implements OnInit {
         this.vm.profile.subscribe( profile => this.profile = profile );
         this.vm.world.subscribe( world => this.world = world );
         this.vm.onlineStatus.subscribe( onlineStatus => this.onlineStatus = onlineStatus );
+        
+        // idservice test
+        this.idservice.authStateObservable.subscribe( authState => console.log( authState.auth.uid ) );
+        this.idservice.currentUserObservable.subscribe( user => console.log( user ) );
 }
-    
+
     goBack() {
         this.location.back();
     }

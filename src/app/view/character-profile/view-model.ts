@@ -9,8 +9,11 @@ export class ViewModel {
     onlineStatus: Observable<Census.CharacterOnlineStatus>;
 
     // 本人確認
+    repo: Identification.RequestRepos;
 
     constructor( private census: Census.Service, private af: AngularFire, private cid: Observable<string> ){
+        
+        
         this.profile = this.cid.flatMap( cid => this.census.getCharacterProfiles( [ cid ] ) )
                                                     .filter( profiles => ( profiles ) ? true : false )
                                                     .map( profiles => profiles[0] )

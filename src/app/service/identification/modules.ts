@@ -6,3 +6,5 @@ export * from './model/user';
 
 export * from './repos/request';
 export * from './repos/user';
+
+export * from './service/service';
