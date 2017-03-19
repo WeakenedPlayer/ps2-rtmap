@@ -1,24 +1,29 @@
 import { DB, Identification } from '../../../service';
 import { AngularFire  } from 'angularfire2';
+import { Observable } from 'rxjs';
 
-/*
-export class RequestRepos extends DB.CompositeMapper<Identification.Request> {
-    constructor( af:AngularFire, base: string, userRepo: DB.Mapper<Identification.User> ) {
-        super( af, base + '/$uid/' );
-        
-        this.addChild( 'uid', userRepo, (keys, values) => { return { id: keys.uid } } );
+export class RequestRepos extends DB.SimpleMapper<Identification.Request> {
+    constructor( af:AngularFire, base: string ) {
+        super( af, base + 'req/$uid/' );
     }
     
-    obj2db( req: Identification.Request, isNew: boolean ): any {
-        if( isNew ) {
-            return { uid: req.user, cid: req.cid, requestedAt: DB.TimeStamp }; 
-        } else {
-            return { uid: req.user, cid: req.cid };
-        }
+    protected db2obj( keys: any, values: any ): Identification.Request {
+        return new Identification.Request( keys.uid, values.cid, values.updatedAt );
     }
 
-    db2obj( keys: any, values: any, children: any ): Identification.Request {
-        return new Identification.Request( children.uid, children.cid, values.requestedAt );
+    getById( uid: string ): Observable<Identification.Request> {
+        return this.getDb( { uid: uid } );
+    }
+    
+    register( uid: string, cid: string ): Promise<void> {
+        return this.setDb( { uid: uid, cid: cid, updatedAt: DB.TimeStamp } );
+    }
+    
+    update( uid: string ): Promise<void> {
+        return this.updateDb( { uid: uid, updatedAt: DB.TimeStamp } );
+    }
+    
+    remove( uid: string): Promise<void> {
+        return this.removeDb( { uid: uid } );
     }
 }
-*/

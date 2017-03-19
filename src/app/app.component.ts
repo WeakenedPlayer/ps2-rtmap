@@ -29,10 +29,8 @@ export class AppComponent implements OnInit {
     }
 
     test(){
-        console.log('test1');
     }
     test2(){
-        console.log('test2');
     }
     test3(){
     }

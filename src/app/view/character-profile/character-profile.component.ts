@@ -1,5 +1,5 @@
 // angular
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { Headers, Http } from '@angular/http';
 import { Router, ActivatedRoute, Params } from '@angular/router';
 import { Location } from '@angular/common';
@@ -9,7 +9,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { AngularFire, AngularFireAuth } from 'angularfire2';
 
 // rx
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 // other imports
 import { Census, Identification } from '../../service';
@@ -22,7 +22,7 @@ import * as VM from './view-model';
   templateUrl: './character-profile.component.html',
   styleUrls: ['./character-profile.component.scss']
 })
-export class CharacterProfileComponent implements OnInit {
+export class CharacterProfileComponent implements OnInit, OnDestroy {
     vm: VM.ViewModel = null;
     profile: Census.CharacterProfile = null;
     world: Census.World = null;
@@ -31,7 +31,11 @@ export class CharacterProfileComponent implements OnInit {
 
     // state
     isLoggedIn: boolean = false;
-    isUserEnabled: boolean = false;
+    uid: string = '';
+    cid: string = '';
+    
+    // subscription
+    subscription = new Subscription();
     
     constructor(
             private af: AngularFire,
@@ -43,24 +47,27 @@ export class CharacterProfileComponent implements OnInit {
     }
 
     ngOnInit() {
-        // view model 作成
-        this.vm = new VM.ViewModel( this.census, this.af, this.route.params.map( ( params: Params ) =>  params['id'] ) );
-        
-        // subscribe
-        this.vm.profile.subscribe( profile => this.profile = profile );
-        this.vm.world.subscribe( world => this.world = world );
-        this.vm.onlineStatus.subscribe( onlineStatus => this.onlineStatus = onlineStatus );
-        
-        // idservice test
-        this.idservice.authStateObservable.subscribe( authState => {
-            if( authState ) {
-                this.isLoggedIn = true;
-            } else { 
-                this.isLoggedIn = false;
-            }
-        } );
-}
+        // Observable作成
+        let cidObservable = this.route.params.map( ( params: Params ) =>  params['id'] );
+        this.vm = new VM.ViewModel( this.census, this.af, this.idservice, cidObservable );
 
+        // 必要な情報を非同期で取得(一括破棄できるようまとめる)
+        this.subscription.add( cidObservable.subscribe( cid => this.cid = cid ) );
+        this.subscription.add( this.idservice.currentUserObservable.subscribe( user => this.uid = ( user ? user.id : null ) ) );
+        this.subscription.add( this.vm.profileObservable.subscribe( profile => this.profile = profile ) );
+        this.subscription.add( this.vm.worldObservable.subscribe( world => this.world = world ) );
+        this.subscription.add( this.vm.onlineStatusObservable.subscribe( onlineStatus => this.onlineStatus = onlineStatus ) );
+        this.subscription.add( this.idservice.authStateObservable.subscribe( authState => this.isLoggedIn = ( authState ? true : false ) ) ); 
+    }
+    
+    ngOnDestroy() {
+        this.subscription.unsubscribe();
+    }
+
+    requestForIdentification() {
+        this.vm.createRequest( this.uid, this.cid );
+    }
+    
     goBack() {
         this.location.back();
     }

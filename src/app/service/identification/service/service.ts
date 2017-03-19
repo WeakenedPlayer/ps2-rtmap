@@ -12,10 +12,13 @@ export class Service {
     authStateObservable: Observable<FirebaseAuthState>;
 
     userRepos: Identification.RegisteredUserRepos;
+    reqRepos: Identification.RequestRepos;
 
     constructor( private af: AngularFire ) {
+        // 大きくないので実体を作ってしまう
         this.userRepos = new Identification.RegisteredUserRepos( this.af, root );
-        
+        this.reqRepos = new Identification.RequestRepos( this.af, root );
+
         this.authStateObservable = ( this.af.auth as Observable<FirebaseAuthState> ).publishReplay(1).refCount();
         this.currentUserObservable = this.authStateObservable.flatMap( authState => {
             if( authState ) {

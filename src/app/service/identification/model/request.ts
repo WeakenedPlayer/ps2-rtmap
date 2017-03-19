@@ -8,30 +8,19 @@ import {  Identification } from '../../index';
  * ################################################################################################################# */
 export class Request{
     constructor(
-            public readonly user: Identification.User,
+            public readonly uid,
             public readonly cid,
             public readonly requestedAt?: number ) {
     }
     
-    takeSnapshot(): RequestSnapshot {
-        return new RequestSnapshot(
-            this.user.uid,
-            this.cid,
-            this.requestedAt );
+    isUpdated( req: Request ): boolean {
+        return ( this.requestedAt !== req.requestedAt );
     }
     
-    isUpdated( snapshot: RequestSnapshot ): boolean {
-        return ( this.requestedAt > snapshot.requestedAt );
-    }
-    
-    isIdentical( snapshot: RequestSnapshot ): boolean {
-        return ( ( this.user.isIdentical( snapshot.uid ) )
-              && ( this.cid === snapshot.cid )
-              && ( this.requestedAt === snapshot.requestedAt ) );
-    }
-    
-    isIdenticalUser( newRequest: Request ): boolean {
-        return this.user.isIdentical( newRequest.user );
+    isIdentical( req: Request ): boolean {
+        return ( ( this.uid === req.uid )
+              && ( this.cid === req.cid )
+              && ( this.requestedAt === req.requestedAt ) );
     }
 }
 
