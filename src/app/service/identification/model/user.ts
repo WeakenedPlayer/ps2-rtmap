@@ -2,7 +2,7 @@
 export class User {
     constructor(
             public readonly uid: string,
-            public disabled: boolean,
+            public enabled: boolean,
             public ceatedAt?: number ) {
     }
 

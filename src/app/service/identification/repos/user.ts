@@ -8,9 +8,9 @@ export class UserRepos extends DB.SimpleMapper<Identification.User> {
     
     obj2db( user: Identification.User, isNew: boolean ): any {
         if( isNew ) {
-            return { id: user.uid, disabled: user.disabled, createdAt: DB.TimeStamp }; 
+            return { id: user.uid, disabled: user.enabled, createdAt: DB.TimeStamp }; 
         } else {
-            return { id: user.uid, disabled: user.disabled }; 
+            return { id: user.uid, disabled: user.enabled }; 
         }
     }
 

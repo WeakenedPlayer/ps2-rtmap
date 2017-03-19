@@ -13,7 +13,9 @@ export class ViewModel {
     constructor( private census: Census.Service, private af: AngularFire, private cid: Observable<string> ){
         this.profile = this.cid.flatMap( cid => this.census.getCharacterProfiles( [ cid ] ) )
                                                     .filter( profiles => ( profiles ) ? true : false )
-                                                    .map( profiles => profiles[0] ).publish().refCount();
+                                                    .map( profiles => profiles[0] )
+                                                    .publish()
+                                                    .refCount(); // Connectable observableを通常のObservableのように使うための処置
         this.world = this.profile.flatMap( profile => this.census.getWorlds( [ profile.world.world_id ] ) )
                            .filter( worlds => ( worlds ) ? true : false )
                            .map( worlds => worlds[0] );

@@ -53,6 +53,7 @@
 	  <p *ngIf="!profile">loading</p>
   </div>
 </div>
+
 <div class="row">
   <div class="col-md-12">
     <div class="btn-group btn-group-justified" role="group">
@@ -60,5 +61,12 @@
 		    <button type="button" class="btn btn-default">Request for character identification</button>
 		  </div>
     </div>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-12">
+    <input type="text" class="form-control" [formControl]="testInput" placeholder="aaa">
   </div>
 </div>

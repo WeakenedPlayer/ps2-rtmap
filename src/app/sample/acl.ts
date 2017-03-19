@@ -9,7 +9,7 @@ class UserRequirement extends Acl.Requirement {
         this.user2 = user2;
     }
     isFulfilled(): boolean {
-        return ( this.user1.disabled === false ) && ( this.user2.disabled === false );
+        return ( this.user1.enabled === false ) && ( this.user2.enabled === false );
     }
 }
 
