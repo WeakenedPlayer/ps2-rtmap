@@ -27,10 +27,12 @@ export class CharacterProfileComponent implements OnInit {
     profile: Census.CharacterProfile = null;
     world: Census.World = null;
     onlineStatus: Census.CharacterOnlineStatus = null;
-
-
     testInput = new FormControl();
 
+    // state
+    isLoggedIn: boolean = false;
+    isUserEnabled: boolean = false;
+    
     constructor(
             private af: AngularFire,
             private census: Census.Service,
@@ -50,8 +52,18 @@ export class CharacterProfileComponent implements OnInit {
         this.vm.onlineStatus.subscribe( onlineStatus => this.onlineStatus = onlineStatus );
         
         // idservice test
-        this.idservice.authStateObservable.subscribe( authState => console.log( authState.auth.uid ) );
-        this.idservice.currentUserObservable.subscribe( user => console.log( user ) );
+        this.idservice.authStateObservable.subscribe( authState => { 
+            this.isLoggedIn = ( authState.auth !== null );
+        } );
+        
+        this.idservice.currentUserObservable.subscribe( user => {
+            console.log( user );
+            if( user ) {
+                this.isUserEnabled = user.enabled;
+            } else {
+                this.isUserEnabled = false;
+            }
+        } );
 }
 
     goBack() {
