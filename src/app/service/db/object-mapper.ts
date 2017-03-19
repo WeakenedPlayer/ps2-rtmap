@@ -79,7 +79,7 @@ export class ObjectMapper {
             parts.pop();
             let observable = this.af.database.list( parts.join( '/' ) ) as Observable<any[]>;
             let subscription = observable.subscribe( data => {
-                subscriber.next( data );
+                subscriber.next( new DB.DbData( keys, data) );
             },
             (err) => {},
             () => {} );

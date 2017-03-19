@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export class RequestRepos extends DB.SimpleMapper<Identification.Request> {
     constructor( af:AngularFire, base: string ) {
-        super( af, base + 'req/$uid/' );
+        super( af, base + 'req/$uid' );
     }
     
     protected db2obj( keys: any, values: any ): Identification.Request {
@@ -25,5 +25,9 @@ export class RequestRepos extends DB.SimpleMapper<Identification.Request> {
     
     remove( uid: string): Promise<void> {
         return this.removeDb( { uid: uid } );
+    }
+    
+    getAll(): Observable<Identification.Request[]> {
+        return this.getAllDb();
     }
 }

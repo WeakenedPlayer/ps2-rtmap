@@ -24,24 +24,15 @@ export class Request{
     }
 }
 
-export class RequestHeader {
-    public readonly userId: string;
-    public readonly userName: string;
-    public readonly characterId: string;
-    public readonly characterName: string;
-    public readonly requestedAt: number;
+export class RequestSnapshot {
     constructor( 
-            ){}
+        public readonly userId: string,
+        public readonly userName: string,
+        public readonly characterId: string,
+        public readonly characterName: string,
+        public readonly requestedAt: number) {}
 }
 
 /* ####################################################################################################################
  * 要求を受け付けた時のスナップショット = DBに格納する形
  * ################################################################################################################# */
-export class RequestSnapshot {
-    // 新規に作る場合のみ
-    constructor(
-            public readonly uid: string,
-            public readonly cid: string,
-            public readonly requestedAt: number) {
-    }
-}

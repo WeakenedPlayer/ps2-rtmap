@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export class RegisteredUserRepos extends DB.SimpleMapper<Identification.RegisteredUser> {
     constructor( af:AngularFire, base: string ) {
-        super( af, base + 'reg/$id/' );
+        super( af, base + 'reg/$id' );
     }
 
     // 復元

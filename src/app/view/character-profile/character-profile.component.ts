@@ -24,19 +24,19 @@ import * as VM from './view-model';
 })
 export class CharacterProfileComponent implements OnInit, OnDestroy {
     vm: VM.ViewModel = null;
+
+    // state
     profile: Census.CharacterProfile = null;
     world: Census.World = null;
     onlineStatus: Census.CharacterOnlineStatus = null;
-    testInput = new FormControl();
-
-    // state
     isLoggedIn: boolean = false;
     uid: string = '';
     cid: string = '';
     
     // subscription
     subscription = new Subscription();
-    
+
+    testInput = new FormControl();
     constructor(
             private af: AngularFire,
             private census: Census.Service,
@@ -49,7 +49,7 @@ export class CharacterProfileComponent implements OnInit, OnDestroy {
     ngOnInit() {
         // Observable作成
         let cidObservable = this.route.params.map( ( params: Params ) =>  params['id'] );
-        this.vm = new VM.ViewModel( this.census, this.af, this.idservice, cidObservable );
+        this.vm = new VM.ViewModel( this.af, this.census, this.idservice, cidObservable );
 
         // 必要な情報を非同期で取得(一括破棄できるようまとめる)
         this.subscription.add( cidObservable.subscribe( cid => this.cid = cid ) );

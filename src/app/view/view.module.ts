@@ -7,6 +7,7 @@ import { CharacterSearchComponent } from './character-search/character-search.co
 import { CharacterProfileComponent } from './character-profile/character-profile.component';
 import { LandingComponent } from './landing/landing.component';
 import { NotFoundComponent } from './not-found/not-found.component';
+import { RequestListComponent } from './request-list/request-list.component';
 
 // このモジュールは、Routerで各ビューをつなぐ役割をになう
 // より複雑になってきたら、forRootを外部に持ち、ここではforChildだけつくることにする。
@@ -17,13 +18,14 @@ import { NotFoundComponent } from './not-found/not-found.component';
 
 const routes: Routes = [
                         { path: 'landing',  component: LandingComponent },
+                        { path: 'request/list/:page',  component: RequestListComponent },
                         { path: 'character/search',  component: CharacterSearchComponent },
                         { path: 'character/show/:id', component: CharacterProfileComponent },
                         { path: '',   redirectTo: '/landing', pathMatch: 'full' },
                         { path: '**', component: NotFoundComponent }
                       ];
 @NgModule({
-  declarations: [ CharacterSearchComponent, CharacterProfileComponent, LandingComponent, NotFoundComponent ],
+  declarations: [ CharacterSearchComponent, CharacterProfileComponent, LandingComponent, NotFoundComponent, RequestListComponent ],
   imports: [ BrowserModule,
              ReactiveFormsModule,
              RouterModule.forRoot(routes)],

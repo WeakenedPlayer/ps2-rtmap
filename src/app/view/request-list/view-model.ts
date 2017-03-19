@@ -3,23 +3,18 @@ import { AngularFire, AngularFireAuth } from 'angularfire2';
 import { Observable } from 'rxjs';
 
 /* ####################################################################################################################
- * View Model?
- * 必要な情報のObservableを用意する
- * 実際の値は View側でSubscribeして取り出してもらう
+ * 
  * ################################################################################################################# */
 
 export class ViewModel {
     // Censusで検索する情報
-    worldObservable: Observable<Census.World>;
-    profileObservable: Observable<Census.CharacterProfile>;
-    onlineStatusObservable: Observable<Census.CharacterOnlineStatus>;
-
-    // ユーザ
-
+    requestList: Observable<Identification.Request[]>;
     constructor( private af: AngularFire,
                  private census: Census.Service,
                  private ids: Identification.Service,
-                 private cidObservable: Observable<string> ){        
+                 private pageObservable: Observable<number> ){
+        this.requestList = this.ids.reqRepos.getAll();
+        /*
         // Profile の　Observable
         this.profileObservable = this.cidObservable.flatMap( cid => this.census.getCharacterProfiles( [ cid ] ) )
         .filter( profiles => ( profiles ) ? true : false )
@@ -39,10 +34,6 @@ export class ViewModel {
         .filter( onlineStatuses => ( onlineStatuses ) ? true : false )
         .map( onlineStatuses => onlineStatuses[0] )
         .publish()
-        .refCount();
-    }
-    
-    createRequest( uid: string, cid: string ) {
-        this.ids.reqRepos.register( uid, cid );
+        .refCount();*/
     }
 }
