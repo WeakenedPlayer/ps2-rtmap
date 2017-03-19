@@ -18,23 +18,22 @@ export abstract class SimpleMapper<T> implements DB.GroupMapper<T> {
     // キーとDBから取得した値を用いて値を復元する
     // --------------------------------------------------------------------------------------------
     protected abstract db2obj( keys: any, values: any ): T;
-    protected abstract obj2db( obj: T, isNew: boolean ): any;
 
     // --------------------------------------------------------------------------------------------
     // [C]RUD
     // オブジェクトを渡して、新しい値を作る(既存の場合は上書き)
     // --------------------------------------------------------------------------------------------
-    set( obj: T ): Promise<void> {
-        return this.mapper.set( this.obj2db( obj, true ) );
+    protected set( obj: any ): Promise<void> {
+        return this.mapper.set( obj );
     }
     
     // --------------------------------------------------------------------------------------------
     // [C]RUD
     // --------------------------------------------------------------------------------------------
-    push( obj: T ): Promise<string> {
+    protected push( obj: any ): Promise<string> {
         return new Promise( ( resolve ) => {
-            this.mapper.push( this.obj2db( obj, true ) ).then( obj => {
-                resolve( obj.key );
+            this.mapper.push( obj ).then( result => {
+                resolve( ( result.$exists() )? result.key : null );
             } );
         } );
     }
@@ -88,8 +87,8 @@ export abstract class SimpleMapper<T> implements DB.GroupMapper<T> {
     // --------------------------------------------------------------------------------------------
     // オブジェクトを渡して、DBの値を一部上書きする(タイムスタンプを上書きから除外したい場合を想定)
     // --------------------------------------------------------------------------------------------
-    update( obj: T ): Promise<void> {
-        return this.mapper.update( this.obj2db( obj, false ) );
+    protected update( obj: any ): Promise<void> {
+        return this.mapper.update( obj );
     }
 
     // --------------------------------------------------------------------------------------------

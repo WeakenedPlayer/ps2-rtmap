@@ -14,10 +14,7 @@ export class DbData {
  * DBからのデータとそれ以外をまとめた、データの復元に必要な情報一式
  * ################################################################################################################# */
 export interface Mapper<T> {
-    set( object: T ): Promise<void>;
-    push( object: T ): Promise<T>;
     get( keys?: any ): Observable<T>;
-    update( object: T ): Promise<void>;
     remove( keys?: any ): Promise<void>;
 }
 

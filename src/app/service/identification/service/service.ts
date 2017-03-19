@@ -39,7 +39,7 @@ export class Service {
         } )
         .do( ( uid ) => {
             if( uid ) {
-                this.userRepos.set( new Identification.RegisteredUser( uid ) );
+                this.userRepos.register( uid );
             }
         } )
         .take(1).subscribe( user => console.log( user ) );

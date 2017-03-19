@@ -5,16 +5,17 @@ export class RegisteredUserRepos extends DB.SimpleMapper<Identification.Register
     constructor( af:AngularFire, base: string ) {
         super( af, base + 'reg/$id/' );
     }
-    
-    obj2db( user: Identification.RegisteredUser, isNew: boolean ): any {
-        if( isNew ) {
-            return { id: user.uid, updatedAt: DB.TimeStamp, createdAt: DB.TimeStamp }; 
-        } else {
-            return { id: user.uid, updatedAt: DB.TimeStamp }; 
-        }
-    }
 
-    db2obj( keys: any, values: any ): Identification.RegisteredUser {
+    // 復元
+    protected db2obj( keys: any, values: any ): Identification.RegisteredUser {
         return new Identification.RegisteredUser( keys.id, values.updatedAt, values.createdAt );
+    }
+    
+    register( uid: string ) {
+        this.set( { id: uid, lastLoggedInAt: DB.TimeStamp, createdAt: DB.TimeStamp } );
+    }
+    
+    updateLastLogin( uid: string ) {
+        this.update( { id: uid, lastLoggedInAt: DB.TimeStamp } );
     }
 }
