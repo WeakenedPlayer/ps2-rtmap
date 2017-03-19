@@ -15,7 +15,7 @@ class DbSubscription {
         if( this.subscription ) {
             this.unsubscribe();
         }
-        this.subscription = this.mapper.get( this.dbData2Key( dbData.keys, dbData.values ) ).subscribe( (subDbData) => {
+        this.subscription = this.mapper.getDb( this.dbData2Key( dbData.keys, dbData.values ) ).subscribe( (subDbData) => {
             callback( subDbData );
         } );
     }
@@ -76,7 +76,7 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     //    副作用を利用して、Subscribeするごとに新しいObservableの実体を生成する。
     //    get するたびに新しい実体が作られるので、 let した変数はすべて独立する
     // --------------------------------------------------------------------------------------------
-    get( keys?: any ): Observable<any> {
+    getDb( keys?: any ): Observable<any> {
         // 各子要素ごとに管理する情報
         let subscription: { [key: string]: Subscription } = {};
 
@@ -151,7 +151,7 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // --------------------------------------------------------------------------------------------
     // キーを指定して、該当するオブジェクトを削除
     // --------------------------------------------------------------------------------------------
-    remove( keys: any ): Promise<void> {
+    protected removeDb( keys: any ): Promise<void> {
         return this.mapper.remove( keys );
     }
 }

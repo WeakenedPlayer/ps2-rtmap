@@ -58,17 +58,6 @@ export class CharacterProfileComponent implements OnInit {
             } else { 
                 this.isLoggedIn = false;
             }
-            console.log( this.isLoggedIn );
-        } );
-        
-        this.idservice.currentUserObservable.subscribe( user => {
-            console.log( user );
-            if( user ) {
-                this.isUserEnabled = true;
-            } else {
-                this.isUserEnabled = false;
-            }
-            console.log( this.isUserEnabled );
         } );
 }
 

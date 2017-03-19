@@ -1,5 +1,6 @@
 import { DB, Identification } from '../../index';
 import { AngularFire  } from 'angularfire2';
+import { Observable } from 'rxjs';
 
 export class RegisteredUserRepos extends DB.SimpleMapper<Identification.RegisteredUser> {
     constructor( af:AngularFire, base: string ) {
@@ -11,11 +12,15 @@ export class RegisteredUserRepos extends DB.SimpleMapper<Identification.Register
         return new Identification.RegisteredUser( keys.id, values.updatedAt, values.createdAt );
     }
     
-    register( uid: string ) {
-        this.setDb( { id: uid, updatedAt: DB.TimeStamp, createdAt: DB.TimeStamp } );
+    getById( uid: string ): Observable<Identification.RegisteredUser> {
+        return this.getDb( { id: uid } );
     }
     
-    update( uid: string ) {
-        this.updateDb( { id: uid, updatedAt: DB.TimeStamp } );
+    register( uid: string ): Promise<void> {
+        return this.setDb( { id: uid, updatedAt: DB.TimeStamp, createdAt: DB.TimeStamp } );
+    }
+    
+    update( uid: string ): Promise<void> {
+        return this.updateDb( { id: uid, updatedAt: DB.TimeStamp } );
     }
 }

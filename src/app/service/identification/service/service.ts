@@ -19,19 +19,24 @@ export class Service {
         this.authStateObservable = ( this.af.auth as Observable<FirebaseAuthState> ).publishReplay(1).refCount();
         this.currentUserObservable = this.authStateObservable.flatMap( authState => {
             if( authState ) {
-                return this.userRepos.get( { id: authState.auth.uid } );
+                return this.userRepos.getById( authState.auth.uid );
             } else {
                 return Observable.of( null );
             } 
         } ).publishReplay(1).refCount();
         this.postLogin();
     } 
-    
-    postLogin() {
-        return this.authStateObservable.filter( authState => authState !== null )
+
+    // --------------------------------------------------------------------------------------------
+    // ログイン後に1回だけ行う、最終ログイン日更新(UIDの登録がなければ登録)
+    // --------------------------------------------------------------------------------------------
+    private postLogin() {
+        return this.authStateObservable
+            .filter( authState => authState !== null )
             .flatMap( authState => { 
                 // 1回だけUIDの更新 or 登録を行う
-                return this.userRepos.get( { id: authState.auth.uid } ).take(1).do( user => {
+                return this.userRepos.getById( authState.auth.uid ).take(1).do( user => {
+                    // console.log( user );
                     if( user ) {
                         this.userRepos.update( user.id );
                     } else {
@@ -40,4 +45,7 @@ export class Service {
                 } );
             } ).take(1).subscribe();
     }
+    // --------------------------------------------------------------------------------------------
+    // ログイン後に1回だけ行う、最終ログイン日更新(UIDの登録がなければ登録)
+    // --------------------------------------------------------------------------------------------
 }

@@ -8,7 +8,7 @@ import { Observable, Subscriber } from 'rxjs';
  * 簡単なクラスに変換するマッパ
  * 外部キーがあってもJoinはしない
  * ################################################################################################################# */
-export abstract class SimpleMapper<T> implements DB.GroupMapper<T> {
+export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     private mapper: DB.ObjectMapper = null;
     constructor( af: AngularFire, url: string ) {
         this.mapper = new DB.ObjectMapper( af, url );
@@ -42,7 +42,7 @@ export abstract class SimpleMapper<T> implements DB.GroupMapper<T> {
     // C[R]UD
     // キーとDBから取得した値を用いて読み出す
     // --------------------------------------------------------------------------------------------
-    get( keys: any ): Observable<T> {
+    getDb( keys: any ): Observable<T> {
         // materialize を防ぐため、map は使わず、必要な処理を一つのObservableで実行する。
         return Observable.create( ( subscriber: Subscriber<T> ) => {
             let subscription = this.mapper.get( keys ).subscribe( ( dbData ) => {
@@ -64,7 +64,7 @@ export abstract class SimpleMapper<T> implements DB.GroupMapper<T> {
     // --------------------------------------------------------------------------------------------
     // C[R]UD
     // --------------------------------------------------------------------------------------------
-    getAll( keys ?: any ) {
+    getAllDb( keys ?: any ) {
         // materialize を防ぐため、map は使わず、必要な処理を一つのObservableで実行する。
         return Observable.create( ( subscriber: Subscriber<T[]> ) => {
             let subscription = this.mapper.getAll( keys ).subscribe( ( dbData ) => {
@@ -94,14 +94,14 @@ export abstract class SimpleMapper<T> implements DB.GroupMapper<T> {
     // --------------------------------------------------------------------------------------------
     // キーを指定して、該当するオブジェクトを削除
     // --------------------------------------------------------------------------------------------
-    remove( keys: any ): Promise<void> {
+    protected removeDb( keys: any ): Promise<void> {
         return this.mapper.remove( keys );
     }
     
     // --------------------------------------------------------------------------------------------
     // キーを指定して、該当するオブジェクト群を削除
     // --------------------------------------------------------------------------------------------
-    removeAll( keys: any ): Promise<void> {
+    protected removeDbAll( keys: any ): Promise<void> {
         return this.mapper.removeAll( keys );
     }
 }

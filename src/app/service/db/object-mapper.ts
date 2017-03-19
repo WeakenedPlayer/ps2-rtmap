@@ -8,7 +8,7 @@ import { DB } from './index';
  * オブジェクトをDBに格納する・DBから復元する
  * 格納対象をキーと本体に分解
  * ################################################################################################################# */
-export class ObjectMapper implements DB.GroupMapper<any> {
+export class ObjectMapper {
     urlParts: string[] = [];
     urlIndex: { [key:string]: number } = {};
     constructor( private af: AngularFire, url: string ) {
