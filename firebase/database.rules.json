@@ -10,7 +10,10 @@
       "reg": {
         "$uid": {
           ".read": "( auth !== null )",
-          ".write": "( auth !== null ) && ($uid === auth.uid) && !data.exists()"
+          ".write": "( auth !== null ) && ($uid === auth.uid) && !data.exists()",
+          "updatedAt": {
+            ".write": "( auth !== null ) && ($uid === auth.uid)"
+          }
         }
       }
     }

@@ -12,10 +12,10 @@ export class RegisteredUserRepos extends DB.SimpleMapper<Identification.Register
     }
     
     register( uid: string ) {
-        this.set( { id: uid, lastLoggedInAt: DB.TimeStamp, createdAt: DB.TimeStamp } );
+        this.setDb( { id: uid, updatedAt: DB.TimeStamp, createdAt: DB.TimeStamp } );
     }
     
-    updateLastLogin( uid: string ) {
-        this.update( { id: uid, lastLoggedInAt: DB.TimeStamp } );
+    update( uid: string ) {
+        this.updateDb( { id: uid, updatedAt: DB.TimeStamp } );
     }
 }

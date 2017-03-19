@@ -53,7 +53,7 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // [C]RUD
     // オブジェクトを渡して、新しい値を作る(既存の場合は上書き)
     // --------------------------------------------------------------------------------------------
-    protected set( obj: any ): Promise<void> {
+    protected setDb( obj: any ): Promise<void> {
         return this.mapper.set( obj );
     }
     
@@ -62,7 +62,7 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // 機能として実装するが、使ってよいかどうかはデータ構造にゆだねる
     // 自動で割り振られるキーがパスの「親ディレクトリ」になる場合、存在しない外部キーを持つことになる。
     // --------------------------------------------------------------------------------------------
-    protected push( obj: any ): Promise<string> {
+    protected pushDb( obj: any ): Promise<string> {
         return new Promise( ( resolve ) => {
             this.mapper.push( obj ).then( result => {
                 resolve( ( result.$exists() )? result.key : null );
@@ -144,7 +144,7 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // --------------------------------------------------------------------------------------------
     // オブジェクトを渡して、DBの値を一部上書きする(タイムスタンプを上書きから除外したい場合を想定)
     // --------------------------------------------------------------------------------------------
-    protected update( obj: any ): Promise<void> {
+    protected updateDb( obj: any ): Promise<void> {
         return this.mapper.update( obj );
     }
 

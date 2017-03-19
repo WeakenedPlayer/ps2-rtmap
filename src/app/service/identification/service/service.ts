@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Headers, Http } from '@angular/http';
 import { Observable } from 'rxjs';
-
 import { AngularFire, AngularFireAuth, FirebaseAuthState } from 'angularfire2';
 
 import { Identification } from '../';
-
 const root = '/ids/';
 
 @Injectable()
@@ -26,22 +24,20 @@ export class Service {
                 return Observable.of( null );
             } 
         } ).publishReplay(1).refCount();
-        this.firstLogin();
+        this.postLogin();
     } 
     
-    firstLogin() {
-        Observable.combineLatest( this.authStateObservable, this.currentUserObservable, ( authState, user ) => {
-            if( ( authState !== null ) && ( user === null ) ) {
-                return authState.auth.uid;
-            } else {
-                return null;
-            }
-        } )
-        .do( ( uid ) => {
-            if( uid ) {
-                this.userRepos.register( uid );
-            }
-        } )
-        .take(1).subscribe( user => console.log( user ) );
+    postLogin() {
+        return this.authStateObservable.filter( authState => authState !== null )
+            .flatMap( authState => { 
+                // 1回だけUIDの更新 or 登録を行う
+                return this.userRepos.get( { id: authState.auth.uid } ).take(1).do( user => {
+                    if( user ) {
+                        this.userRepos.update( user.id );
+                    } else {
+                        this.userRepos.register( authState.auth.uid );
+                    }
+                } );
+            } ).take(1).subscribe();
     }
 }

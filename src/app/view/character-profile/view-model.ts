@@ -9,7 +9,6 @@ export class ViewModel {
     onlineStatus: Observable<Census.CharacterOnlineStatus>;
 
     // 本人確認
-    repo: Identification.RequestRepos;
 
     constructor( private census: Census.Service, private af: AngularFire, private cid: Observable<string> ){
         

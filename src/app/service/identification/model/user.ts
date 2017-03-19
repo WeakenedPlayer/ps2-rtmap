@@ -4,7 +4,7 @@
  * ################################################################################################################# */
 export class RegisteredUser {
     constructor(
-            public readonly uid: string,
+            public readonly id: string,
             public updatedAt?: number,
             public ceatedAt?: number ) {
     }
