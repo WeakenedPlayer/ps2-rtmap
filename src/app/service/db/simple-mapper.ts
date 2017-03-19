@@ -68,7 +68,6 @@ export abstract class SimpleMapper<T> implements DB.Mapper<T> {
         // materialize を防ぐため、map は使わず、必要な処理を一つのObservableで実行する。
         return Observable.create( ( subscriber: Subscriber<T[]> ) => {
             let subscription = this.mapper.getAll( keys ).subscribe( ( dbData ) => {
-                console.log( dbData );
                 let result = Array<T>( dbData.values.length );
                 dbData.values.forEach( ( value, index ) => {
                     if( value.$exists ) {

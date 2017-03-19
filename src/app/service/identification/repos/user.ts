@@ -9,7 +9,7 @@ export class RegisteredUserRepos extends DB.SimpleMapper<Identification.Register
 
     // 復元
     protected db2obj( keys: any, values: any ): Identification.RegisteredUser {
-        return new Identification.RegisteredUser( keys.id, values.updatedAt, values.createdAt );
+        return new Identification.RegisteredUser( values.$key, values.updatedAt, values.createdAt );
     }
     
     getById( uid: string ): Observable<Identification.RegisteredUser> {

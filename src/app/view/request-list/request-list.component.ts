@@ -41,7 +41,7 @@ export class RequestListComponent implements OnInit {
         this.vm = new VM.ViewModel( af, census, ids, pageObservable );
         
         this.subscription.add( pageObservable.subscribe( ( page: number ) => this.page = page ) );
-        this.subscription.add( this.vm.requestList.subscribe( list => this.list = list ) );
+        this.subscription.add( this.vm.requestList.subscribe( list => { console.log(list); this.list = list; } ) );
     }
 
     ngOnInit() {}

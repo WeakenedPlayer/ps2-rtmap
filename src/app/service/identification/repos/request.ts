@@ -8,7 +8,7 @@ export class RequestRepos extends DB.SimpleMapper<Identification.Request> {
     }
     
     protected db2obj( keys: any, values: any ): Identification.Request {
-        return new Identification.Request( keys.uid, values.cid, values.updatedAt );
+        return new Identification.Request( values.$key, values.cid, values.updatedAt );
     }
 
     getById( uid: string ): Observable<Identification.Request> {
