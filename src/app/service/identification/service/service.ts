@@ -6,6 +6,8 @@ import { AngularFire, AngularFireAuth, FirebaseAuthState } from 'angularfire2';
 
 import { Identification } from '../';
 
+const root = '/ids/';
+
 @Injectable()
 export class Service {
     currentUserObservable: Observable<Identification.RegisteredUser>;
@@ -14,7 +16,7 @@ export class Service {
     userRepos: Identification.RegisteredUserRepos;
 
     constructor( private af: AngularFire ) {
-        this.userRepos = new Identification.RegisteredUserRepos( this.af, '/id/' );
+        this.userRepos = new Identification.RegisteredUserRepos( this.af, root );
         
         this.authStateObservable = ( this.af.auth as Observable<FirebaseAuthState> ).publishReplay(1).refCount();
         this.currentUserObservable = this.authStateObservable.flatMap( authState => {

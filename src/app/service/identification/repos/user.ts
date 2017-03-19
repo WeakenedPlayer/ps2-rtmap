@@ -3,14 +3,14 @@ import { AngularFire  } from 'angularfire2';
 
 export class RegisteredUserRepos extends DB.SimpleMapper<Identification.RegisteredUser> {
     constructor( af:AngularFire, base: string ) {
-        super( af, base + 'user/$id/' );
+        super( af, base + 'reg/$id/' );
     }
     
     obj2db( user: Identification.RegisteredUser, isNew: boolean ): any {
         if( isNew ) {
-            return { id: user.uid, updatedAt: user.updatedAt, createdAt: DB.TimeStamp }; 
+            return { id: user.uid, updatedAt: DB.TimeStamp, createdAt: DB.TimeStamp }; 
         } else {
-            return { id: user.uid, updatedAt: user.updatedAt }; 
+            return { id: user.uid, updatedAt: DB.TimeStamp }; 
         }
     }
 

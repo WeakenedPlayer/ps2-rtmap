@@ -1,0 +1,18 @@
+{
+  "rules": {
+    // developer privilege
+    ".read": "root.child('dev/'+auth.uid).val() === true",
+    ".write": "root.child('dev/'+auth.uid).val() === true",
+    "dev": {
+      // only accessible via console
+    },
+    "ids": {
+      "reg": {
+        "$uid": {
+          ".read": "( auth !== null )",
+          ".write": "( auth !== null ) && ($uid === auth.uid) && !data.exists()"
+        }
+      }
+    }
+  }
+}
