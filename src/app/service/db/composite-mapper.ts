@@ -1,7 +1,6 @@
 // firebase
 import { DB } from './index';
-import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
-import * as firebase from 'firebase';
+import { AngularFire  } from 'angularfire2';
 import { Observable, Subscription, Subscriber } from 'rxjs';
 
 //単純に古いSubscriptionをUnsubscribeする
@@ -16,7 +15,7 @@ class DbSubscription {
         if( this.subscription ) {
             this.unsubscribe();
         }
-        this.subscription = this.mapper.get( this.dbData2Key( dbData.keys, dbData.values ) ).subscribe( (subDbData) => {
+        this.subscription = this.mapper.getDb( this.dbData2Key( dbData.keys, dbData.values ) ).subscribe( (subDbData) => {
             callback( subDbData );
         } );
     }
@@ -41,7 +40,6 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // キーとDBから取得した値を用いて値を復元する
     // --------------------------------------------------------------------------------------------
     protected abstract db2obj( keys: any, values: any, children ): T;
-    protected abstract obj2db( obj: T, isNew: boolean ): any;
 
     // --------------------------------------------------------------------------------------------
     // サブクラスで子要素を追加する
@@ -55,8 +53,8 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // [C]RUD
     // オブジェクトを渡して、新しい値を作る(既存の場合は上書き)
     // --------------------------------------------------------------------------------------------
-    set( obj: T ): Promise<void> {
-        return this.mapper.set( this.obj2db( obj, true ) );
+    protected setDb( obj: any ): Promise<void> {
+        return this.mapper.set( obj );
     }
     
     // --------------------------------------------------------------------------------------------
@@ -64,10 +62,10 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // 機能として実装するが、使ってよいかどうかはデータ構造にゆだねる
     // 自動で割り振られるキーがパスの「親ディレクトリ」になる場合、存在しない外部キーを持つことになる。
     // --------------------------------------------------------------------------------------------
-    push( obj: T ): Promise<string> {
+    protected pushDb( obj: any ): Promise<string> {
         return new Promise( ( resolve ) => {
-            this.mapper.push( this.obj2db( obj, true ) ).then( obj => {
-                resolve( obj.key );
+            this.mapper.push( obj ).then( result => {
+                resolve( ( result.$exists() )? result.key : null );
             } );
         } );
     }
@@ -78,7 +76,7 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     //    副作用を利用して、Subscribeするごとに新しいObservableの実体を生成する。
     //    get するたびに新しい実体が作られるので、 let した変数はすべて独立する
     // --------------------------------------------------------------------------------------------
-    get( keys?: any ): Observable<any> {
+    getDb( keys?: any ): Observable<any> {
         // 各子要素ごとに管理する情報
         let subscription: { [key: string]: Subscription } = {};
 
@@ -100,13 +98,13 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
             // 全ての子要素を並列して監視するObservable
             // 変化があったら子要素のKeyと、その値を、{key,value}の形式で後段に伝える。
             // TODO: 重複が増える使い方に備え、Subscriptionの管理を見直す
+            //       親要素の取得に失敗した場合を考慮する($exists == false)
             // ------------------------------------------------------------------------------------
             this.mapper.get( keys ).subscribe( dbData => {
                 // 親要素の再読出しに伴う処置
                 tmpDbData = dbData;
                 finishedCount = 0;
                 isFinished={};
-                
                 
                 // 子要素のSubscriptionを作成する
                 for( let k in this.dbSubscription ) {
@@ -146,14 +144,14 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // --------------------------------------------------------------------------------------------
     // オブジェクトを渡して、DBの値を一部上書きする(タイムスタンプを上書きから除外したい場合を想定)
     // --------------------------------------------------------------------------------------------
-    update( obj: T ): Promise<void> {
-        return this.mapper.update( this.obj2db( obj, false ) );
+    protected updateDb( obj: any ): Promise<void> {
+        return this.mapper.update( obj );
     }
 
     // --------------------------------------------------------------------------------------------
     // キーを指定して、該当するオブジェクトを削除
     // --------------------------------------------------------------------------------------------
-    remove( keys: any ): Promise<void> {
+    protected removeDb( keys: any ): Promise<void> {
         return this.mapper.remove( keys );
     }
 }

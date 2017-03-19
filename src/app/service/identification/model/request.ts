@@ -1,4 +1,4 @@
-import { User, Identification } from '../index';
+import {  Identification } from '../../index';
 
 /* ####################################################################################################################
  * 要求 なんか変だけど UserIdentity(確認済み)とは分けて考える
@@ -8,31 +8,30 @@ import { User, Identification } from '../index';
  * ################################################################################################################# */
 export class Request{
     constructor(
-            public readonly user: User,
-            public readonly character: Identification.Character,
+            public readonly uid,
+            public readonly cid,
             public readonly requestedAt?: number ) {
     }
     
-    takeSnapshot(): RequestSnapshot {
-        return new RequestSnapshot(
-            this.user.uid,
-            this.character.cid,
-            this.requestedAt );
+    isUpdated( req: Request ): boolean {
+        return ( this.requestedAt !== req.requestedAt );
     }
     
-    isUpdated( snapshot: RequestSnapshot ): boolean {
-        return ( this.requestedAt > snapshot.requestedAt );
+    isIdentical( req: Request ): boolean {
+        return ( ( this.uid === req.uid )
+              && ( this.cid === req.cid )
+              && ( this.requestedAt === req.requestedAt ) );
     }
-    
-    isIdentical( snapshot: RequestSnapshot ): boolean {
-        return ( ( this.user.isIdentical( snapshot.uid ) )
-              && ( this.character.isIdentical( snapshot.cid ) )
-              && ( this.requestedAt === snapshot.requestedAt ) );
-    }
-    
-    isIdenticalUser( newRequest: Request ): boolean {
-        return this.user.isIdentical( newRequest.user );
-    }
+}
+
+export class RequestHeader {
+    public readonly userId: string;
+    public readonly userName: string;
+    public readonly characterId: string;
+    public readonly characterName: string;
+    public readonly requestedAt: number;
+    constructor( 
+            ){}
 }
 
 /* ####################################################################################################################

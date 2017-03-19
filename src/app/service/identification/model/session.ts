@@ -1,4 +1,4 @@
-import { User, Identification } from '../index';
+import { Identification } from '../../index';
 
 export class IdentificationSessionOutdatedError implements Error {
     public name: string;
@@ -22,7 +22,7 @@ export class IdentificationRequesterUnmatchedError implements Error {
 export class IdentificationSession {
     private originalRequest: Identification.Request;         // uid -> Request
     private snapshot: Identification.RequestSnapshot;
-    private acceptedBy: User;
+    private acceptedBy: Identification.User;
     private token: string;
     private receivedToken: string;
 
@@ -99,7 +99,7 @@ export class IdentificationSession {
         }
         return new Identification.UserIdentity(
                 this.originalRequest.user,
-                this.originalRequest.character,
+                this.originalRequest.cid,
                 this.acceptedBy,
                 null );
     }

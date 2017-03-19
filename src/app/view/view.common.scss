@@ -43,7 +43,7 @@ $icon_color_active: lighten( $icon_color, 30% );
 }
 
 .ui-toolbar-btn {
-  display: table-cell;    
+  display: table-cell;
   padding: 6px 12px;
   font-weight: 400;
   line-height: 1;
@@ -59,12 +59,15 @@ $icon_color_active: lighten( $icon_color, 30% );
 }
 
 .ui-toolbar-title {
+  display: table-cell;
+  text-align: left;
   white-space: nowrap;
-  width: 1%;
   line-height: 1;
   margin: 0; 
   padding: 6px 6px;
   vertical-align: middle;
+  font-size: large;
+  font-weight: bolder;
 }
 
 .ui-info-box {

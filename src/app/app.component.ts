@@ -4,12 +4,10 @@ import { Headers, Http } from '@angular/http';
 
 import { FormControl } from '@angular/forms';
 
-import { User, Db, Acl } from './service';
+import { DB, Acl, Identification } from './service';
 import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, AngularFireAuth, FirebaseRef } from 'angularfire2';
 
 import 'rxjs/add/operator/toPromise';
-
-import { AclSample } from './sample';
 
 @Component({
   selector: 'app-root',
@@ -18,8 +16,8 @@ import { AclSample } from './sample';
 })
 
 export class AppComponent implements OnInit {
-    selectedId: string;
-    createdChildren: string[];
+    selectedId: string= "";
+    createdChildren: string[] = []; 
     constructor( private af: AngularFire, private http: Http ) { 
     }
     

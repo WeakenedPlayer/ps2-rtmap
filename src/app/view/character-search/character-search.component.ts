@@ -25,22 +25,29 @@ export class CharacterSearchComponent implements OnInit {
     selectedCharacter: Census.CharacterName = null;
     
     // 検索用
-    baseUrlProvider = new Census.UrlProvider( 'WeakenedFuntime' );    
     partialNameInput = new FormControl();
 
+    // Regexp
+    inputCheck: RegExp;
+
     constructor( private census: Census.Service, private location: Location ) {
+        this.inputCheck = new RegExp( /^([a-z0-9])+$/ );
         this.partialNameInput.valueChanges
         .debounceTime(500)
+        .map( str => str.trim().toLowerCase() )
         .distinctUntilChanged()
-        .subscribe( partialName => {
+        .filter( str => this.inputCheck.test( str ) )
+        .subscribe( ( partialName: string ) => {
             // 500msは間隔をあけて、内容が変わっていたら入力された文字列でCensus APIに問い合わせる
             if( partialName.length >= CENSUS_API_LOWER_LIMIT ){
-                this.census.getCharacterNames( partialName.toLowerCase() )
+                this.census.getCharacterNames( partialName )
                 .toPromise()
                 .then( result => {
                     this.candidates = result;
                 })
-                .catch( reason => { console.log( reason ); } );
+                .catch( reason => {
+                    // 暫定
+                    console.log( reason ); } );
             } else {
                 // 表示を削除
                 this.candidates = [];

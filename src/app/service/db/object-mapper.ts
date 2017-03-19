@@ -8,7 +8,7 @@ import { DB } from './index';
  * オブジェクトをDBに格納する・DBから復元する
  * 格納対象をキーと本体に分解
  * ################################################################################################################# */
-export class ObjectMapper implements DB.GroupMapper<any> {
+export class ObjectMapper {
     urlParts: string[] = [];
     urlIndex: { [key:string]: number } = {};
     constructor( private af: AngularFire, url: string ) {
@@ -27,6 +27,8 @@ export class ObjectMapper implements DB.GroupMapper<any> {
     private toPath( object: any ): string[] {
         let parts: string[] = [].concat( this.urlParts );
 
+        // console.log( parts );
+    
         // パラメータを置き換える。不足している場合はFirebaseがエラーを返す(不正なURLと認識)
         if( object ) {
             for( let key in this.urlIndex ) {
@@ -93,6 +95,7 @@ export class ObjectMapper implements DB.GroupMapper<any> {
         let keys = this.toPath( object );
         let dbObject = this.toDbObject( object );
 
+        console.log( dbObject );
         let ref = this.af.database.object( keys.join( '/' ) );
         return new Promise( ( resolve ) => {
             ref.set( dbObject ).then( ()=>{ resolve(); } );
