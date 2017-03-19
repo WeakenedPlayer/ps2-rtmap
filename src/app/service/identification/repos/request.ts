@@ -1,7 +1,7 @@
 import { DB, Identification } from '../../../service';
 import { AngularFire  } from 'angularfire2';
 
-
+/*
 export class RequestRepos extends DB.CompositeMapper<Identification.Request> {
     constructor( af:AngularFire, base: string, userRepo: DB.Mapper<Identification.User> ) {
         super( af, base + '/$uid/' );
@@ -21,3 +21,4 @@ export class RequestRepos extends DB.CompositeMapper<Identification.Request> {
         return new Identification.Request( children.uid, children.cid, values.requestedAt );
     }
 }
+*/

@@ -1,21 +1,23 @@
-
-export class User {
+/* ####################################################################################################################
+ * ログインし、登録したことのあるユーザ
+ * ログインするたびに updatedAt を更新する
+ * ################################################################################################################# */
+export class RegisteredUser {
     constructor(
             public readonly uid: string,
-            public enabled: boolean,
+            public updatedAt?: number,
             public ceatedAt?: number ) {
-    }
-
-    isIdentical( uid: string ): boolean;
-    isIdentical( user: User ): boolean;
-    isIdentical( u: any ): boolean {
-        let ret = false;
-        if( typeof u === 'User' ) {
-            ret = (this.uid === u.uid);
-        } else if( typeof u === 'string' ) {
-            ret = ( this.uid === u );
-        }
-        return ret;
     }
 }
 
+/* ####################################################################################################################
+ * ログインし、登録したことのあるユーザ
+ * ログインするたびに updatedAt を更新する
+ * ################################################################################################################# */
+export class UserPermission {
+    constructor(
+            public readonly uid: string,
+            public updatedAt?: number,
+            public ceatedAt?: number ) {
+    }
+}

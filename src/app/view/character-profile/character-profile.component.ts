@@ -52,17 +52,23 @@ export class CharacterProfileComponent implements OnInit {
         this.vm.onlineStatus.subscribe( onlineStatus => this.onlineStatus = onlineStatus );
         
         // idservice test
-        this.idservice.authStateObservable.subscribe( authState => { 
-            this.isLoggedIn = ( authState.auth !== null );
+        this.idservice.authStateObservable.subscribe( authState => {
+            if( authState ) {
+                this.isLoggedIn = true;
+            } else { 
+                this.isLoggedIn = false;
+            }
+            console.log( this.isLoggedIn );
         } );
         
         this.idservice.currentUserObservable.subscribe( user => {
             console.log( user );
             if( user ) {
-                this.isUserEnabled = user.enabled;
+                this.isUserEnabled = true;
             } else {
                 this.isUserEnabled = false;
             }
+            console.log( this.isUserEnabled );
         } );
 }
 

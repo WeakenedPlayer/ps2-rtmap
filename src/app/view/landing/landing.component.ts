@@ -14,7 +14,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     msg: string = 'n/a';
     isLoggedIn: boolean = false;
     constructor( private af: AngularFire, private idservice: Identification.Service ) {
-        idservice.authStateObservable.subscribe( authState => {
+        this.idservice.authStateObservable.subscribe( authState => {
             if( authState ) {
                 this.msg = 'login as ' + authState.auth.displayName;
                 this.isLoggedIn = true;
@@ -23,9 +23,9 @@ export class LandingComponent implements OnInit, OnDestroy {
                 this.isLoggedIn = false;
             }
         } );
-        
     }
-    ngOnInit(){}
+    ngOnInit(){
+        }
     ngOnDestroy() {}
     
     login() {
@@ -36,7 +36,6 @@ export class LandingComponent implements OnInit, OnDestroy {
 
     logout() {
         if( this.af.auth ) {
-            console.log( 'logout' );
             this.af.auth.logout();
         } else {
             console.log( 'already logged out' );

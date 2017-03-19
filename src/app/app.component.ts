@@ -9,8 +9,6 @@ import { AngularFire , FirebaseObjectObservable, FirebaseListObservable, Angular
 
 import 'rxjs/add/operator/toPromise';
 
-import { ReposSample } from './sample';
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -20,9 +18,7 @@ import { ReposSample } from './sample';
 export class AppComponent implements OnInit {
     selectedId: string= "";
     createdChildren: string[] = []; 
-    reposSample: ReposSample.Test;
     constructor( private af: AngularFire, private http: Http ) { 
-        this.reposSample = new ReposSample.Test( af );
     }
     
     ngOnInit() {
@@ -34,11 +30,9 @@ export class AppComponent implements OnInit {
 
     test(){
         console.log('test1');
-        this.reposSample.addUser( new Identification.User( 'aaaaaa', false ) );
     }
     test2(){
         console.log('test2');
-        this.reposSample.getUser( 'aaaaaa' );
     }
     test3(){
     }
