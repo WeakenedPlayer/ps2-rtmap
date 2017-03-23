@@ -8,6 +8,18 @@ import { Observable, Subscription } from 'rxjs';
 const maxBuffer = 3;
 const reqPerPage = 2;
 
+class MyHandShake extends Comm.Handshake<string,string> {
+    constructor( af: AngularFire, uid: string ) {
+        super( af, uid, '/root', '/stage1' );
+    }
+    
+    protected validate( data: Comm.HandShakeData<string,string> ): boolean {
+        // 送信と受信が同じならOK
+        console.log( data );
+        return data.rx.msg === data.tx.msg;
+    }
+}
+
 export class ViewModel {
     // Censusで検索する情報
     requestList: Observable<Identification.Request[]>;
@@ -18,18 +30,39 @@ export class ViewModel {
                  private census: Census.Service,
                  private ids: Identification.Service,
                  private pageObservable: Observable<number> ){
-        let comm: Comm.HandShake<string,string>;
+        let comm: MyHandShake;
         this.ids.authStateObservable.take(1).toPromise().then( authState => {
-            comm = new Comm.HandShake<string,string>( this.af, '', authState.uid );    
-            comm.getState( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' ).subscribe( res => console.log( res ) );
-            return comm.initiate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hello' );
+            comm = new MyHandShake( this.af, authState.uid );    
+            console.log( 'initiate' );
+            return comm.initiate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hi', true );
+        } )
+        .then( () => {
+            return comm.respond( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'aaa' );
+        } )
+        .then( () => {
+            return comm.terminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+        } )
+        .then( (result) => {
+            console.log( result );
+            return comm.respond( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hi' );
+        } ).then( () => {
+            return comm.terminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+        } )
+        .then( (result) => {
+            console.log( result );
+            console.log( 'retry' );
+            return comm.undoTerminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );            
         } )
         .then( () => {
             return comm.respond( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hi' );
         } )
         .then( () => {
             return comm.terminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
-        } );
+        } )
+        .then( (result) => {
+            console.log( result );
+        } )
+        .catch( ()=>{ console.log('failed') });
         
         /*
         .then( a => {
@@ -91,6 +124,4 @@ export class ViewModel {
         } );
         */
     }
-    
-    
 }

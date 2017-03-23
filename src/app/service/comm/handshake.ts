@@ -1,11 +1,6 @@
-import { DB } from '../index';
+import { DB, Comm } from '../index';
 import { AngularFire  } from 'angularfire2';
 import { Observable } from 'rxjs';
-import 'rxjs/add/operator/toPromise';
-
-
-// local
-import * as HS from './local';
 
 /* ####################################################################################################################
  * ハンドシェイクをDB上で行うクラス
@@ -13,78 +8,108 @@ import * as HS from './local';
  * TX側: initiate, terminate
  * RX側: respond
  * ################################################################################################################# */
-export class HandShake<TX,RX> extends DB.SimpleMapper<HS.HandShakeData<TX,RX>> {
-    constructor( af:AngularFire, url: string, private uid: string) {
-        super( af, url );
+export abstract class Handshake<TX,RX> extends DB.SimpleMapper<Comm.HandShakeData<TX,RX>> {
+    constructor( af:AngularFire, private uid: string, urlPrefix: string, urlSuffix: string ) {
+        super( af, urlPrefix + '/$tid/$rid' + urlSuffix );
     }
 
-    // 復元
-    protected db2obj( keys: any, values: any ): HS.HandShakeData<TX,RX> {
-        let tx = ( values.t === undefined ) ? null : new HS.Message<TX>( keys.tid, values.t.t, values.t.m );
-        let rx = ( values.r === undefined ) ? null : new HS.Message<RX>( keys.rid, values.r.t, values.r.m );
-        let s  = new HS.State( values.v, values.l, values.f );
-        return new HS.HandShakeData<TX,RX>( tx, rx, s );
+    // DB状のデータのデータの復元
+    protected db2obj( keys: any, values: any ): Comm.HandShakeData<TX,RX> {
+        let tx = ( values.t === undefined ) ? null : new Comm.Message<TX>( keys.tid, values.t.t, values.t.m );
+        let rx = ( values.r === undefined ) ? null : new Comm.Message<RX>( keys.rid, values.r.t, values.r.m );
+        let s  = new Comm.State( values.result, values.blocked, values.finalized );
+        return new Comm.HandShakeData<TX,RX>( tx, rx, s );
     }
 
+    protected abstract validate( state: Comm.HandShakeData<TX,RX> ): boolean;
+    
     // --------------------------------------------------------------------------------------------
     // TX側のメソッド
     // --------------------------------------------------------------------------------------------
-    // ロック状態の変更
-    private setLock( uid: string, lock: boolean ): Promise<void> {
-        return this.updateDb( { tid: this.uid,
-                                rid: uid,
-                                l: lock } );
-    }
-    lock( uid: string ): Promise<void>       { return this.setLock( uid, true ); }
-    unlock( uid: string ): Promise<void>     { return this.setLock( uid, false ); }
-
-    // 有効・無効の変更
-    private setValidity( uid: string, validity: boolean ): Promise<void> {
-        return this.updateDb( { tid: this.uid,
-                                rid: uid,
-                                v: validity } );
-    }
-    invalidate( uid: string ): Promise<void> { return this.setValidity( uid, true ); }
-    validate( uid: string ): Promise<void>   { return this.setValidity( uid, false ); }
-
     // 削除
-    delete( uid: string ): Promise<void>     { return this.removeDb( { tid: this.uid, rid: uid } ); }
-
+    delete( uid: string ): Promise<void> {
+        return this.removeDb( { tid: this.uid, rid: uid } ); 
+    }
 
     // ハンドシェイク開始
-    initiate( uid: string, data: TX ): Promise<void> {
+    initiate( uid: string, tx: TX, force: boolean = false ): Promise<void> {
         // 応答は初期化される
-        return this.setDb( { tid: this.uid,
-                             rid: uid,
-                             t: { t: DB.TimeStamp, m: data },
-                             v: false,
-                             l: false,
-                             f: false } );
+        return new Promise( ( resolve, reject ) => {
+            this.getStateOnce( uid )
+            .then( data => {
+                if( !data || force || !data.state.finalized ) {
+                    return this.setDb( { tid: this.uid,
+                                         rid: uid,
+                                         t: { t: DB.TimeStamp, m: tx },
+                                         result: false,
+                                         blocked: false,
+                                         finalized: false }
+                    ).then( () => { resolve() } );
+                } else {
+                    reject();
+                }
+            } );
+        } );
     }
-
-    // ハンドシェイク終了(終了するとともにロックもする)
-    terminate( uid: string ): Promise<void> {
+    
+    // 応答をブロックしたうえで結果を入力する
+    terminate( uid: string ): Promise<boolean> {
+        return new Promise( ( resolve, reject ) => {
+            let result: boolean = false;
+            // 応答をブロック
+            return this.updateDb( { tid: this.uid,
+                                    rid: uid,
+                                    blocked: true } )
+            .then( () => {
+                // 最新の応答値を取得
+                return this.getState( uid ).take(1).toPromise();
+            } )
+            .then( ( data ) => {
+                if( ( !data ) || data.state.finalized ) {
+                    console.log( 'oops');
+                    reject();
+                }
+                // 検証
+                result = this.validate( data );
+                return this.updateDb( { tid: this.uid,
+                                        rid: uid,
+                                        result: result,
+                                        blocked: true,
+                                        finalized: true } );
+            } ).then( () => {
+                resolve( result );
+            } );
+        } );
+    }
+    
+    // 完了状態と入力ブロックを解除し、再判定できるようにする
+    undoTerminate( uid: string ): Promise<void> {
         return this.updateDb( { tid: this.uid,
                                 rid: uid,
-                                f: true,
-                                l: true } );
+                                result: false,
+                                blocked: false,
+                                finalized: false } );
     }
 
     // --------------------------------------------------------------------------------------------
     // RX側のメソッド
     // --------------------------------------------------------------------------------------------
     // 応答
-    respond( uid: string, data: RX ): Promise<void> {
+    respond( uid: string, rx: RX ): Promise<void> {
         return this.updateDb( { tid: uid,
                                 rid: this.uid,
-                                r: { t: DB.TimeStamp, m: data } } );
+                                r: { t: DB.TimeStamp, m: rx } } );
     }
 
     // --------------------------------------------------------------------------------------------
     // 共通のメソッド
     // --------------------------------------------------------------------------------------------
     // メッセージと状態全て取得する
-    getState( uid: string ): Observable<HS.HandShakeData<TX,RX>> {
+    getState( uid: string ): Observable<Comm.HandShakeData<TX,RX>> {
         return this.getDb( { tid: this.uid, rid: uid } );
+    }
+
+    getStateOnce( uid: string ): Promise<Comm.HandShakeData<TX,RX>> {
+        return this.getDb( { tid: this.uid, rid: uid } ).take(1).toPromise();
     }
 }
