@@ -20,12 +20,13 @@ import * as VM from './view-model';
   templateUrl: './request-list.component.html',
   styleUrls: ['./request-list.component.scss']
 })
-export class RequestListComponent implements OnInit {
+export class RequestListComponent implements OnInit, OnDestroy {
     vm: VM.ViewModel;
 
     // binding
-    list: Identification.Request[] = [];
     page: number = 0;
+    requestList: Identification.Request[] = [];
+    profileList: { [key:string]: Census.CharacterProfile } = {};
 
     // subscription
     subscription = new Subscription();
@@ -37,12 +38,21 @@ export class RequestListComponent implements OnInit {
             private route: ActivatedRoute,
             private router: Router,
             private location: Location ) {
-        let pageObservable = this.route.params.map( ( params: Params ) =>  params['page'] );
-        this.vm = new VM.ViewModel( af, census, ids, pageObservable );
-        
-        this.subscription.add( pageObservable.subscribe( ( page: number ) => this.page = page ) );
-        this.subscription.add( this.vm.requestList.subscribe( list => { console.log(list); this.list = list; } ) );
     }
 
-    ngOnInit() {}
+    ngOnInit() {
+        let pageObservable = this.route.params.map( ( params: Params ) =>  params['page'] );
+        this.vm = new VM.ViewModel( this.af, this.census, this.ids, pageObservable );
+        /*
+        this.subscription.add( pageObservable.subscribe( ( page: number ) => this.page = page ) );
+        this.subscription.add( this.vm.requestList.subscribe( list => this.requestList = list ) );
+        this.subscription.add( this.vm.profileMapObservable.subscribe( list => {
+            this.profileList = list;
+            console.log( list );
+        } ) );*/
+    }
+    
+    ngOnDestroy() {
+        this.subscription.unsubscribe();
+    }
 }

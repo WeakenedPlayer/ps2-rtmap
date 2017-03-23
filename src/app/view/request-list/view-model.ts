@@ -1,39 +1,96 @@
-import { Census, Identification } from '../../service';
+import { Census, Identification, Comm } from '../../service';
 import { AngularFire, AngularFireAuth } from 'angularfire2';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 /* ####################################################################################################################
  * 
  * ################################################################################################################# */
+const maxBuffer = 3;
+const reqPerPage = 2;
 
 export class ViewModel {
     // Censusで検索する情報
     requestList: Observable<Identification.Request[]>;
+    profileMapObservable: Observable<{ [key:string]: Census.CharacterProfile }>;
+    worldList: Observable<Census.World[]>;
+
     constructor( private af: AngularFire,
                  private census: Census.Service,
                  private ids: Identification.Service,
                  private pageObservable: Observable<number> ){
-        this.requestList = this.ids.reqRepos.getAll();
+        let comm: Comm.HandShake<string,string>;
+        this.ids.authStateObservable.take(1).toPromise().then( authState => {
+            comm = new Comm.HandShake<string,string>( this.af, '', authState.uid );    
+            comm.getState( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' ).subscribe( res => console.log( res ) );
+            return comm.initiate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hello' );
+        } )
+        .then( () => {
+            return comm.respond( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hi' );
+        } )
+        .then( () => {
+            return comm.terminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+        } );
+        
         /*
-        // Profile の　Observable
-        this.profileObservable = this.cidObservable.flatMap( cid => this.census.getCharacterProfiles( [ cid ] ) )
-        .filter( profiles => ( profiles ) ? true : false )
-        .map( profiles => profiles[0] )
-        .publish()
-        .refCount(); 
+        .then( a => {
+            return comm.respond( '8PGAlqf37mU1jwzQ7t9UNllm73t1' );
+        } )
+        .then( () => {
+            if( sub === null ) {
+                sub.unsubscribe();
+            }
+            return comm.getResponse().then( resp => sub = resp.subscribe( a => console.log(a)));
+        } ).then( result => {
+            console.log( result );
+        } );
+        .then( a => {
+            return comm.respond( '8PGAlqf37mU1jwzQ7t9UNllm73t1' );
+        } )
+        .then( () => {
+            if( sub === null ) {
+                sub.unsubscribe();
+            }
+            return comm.getResponse().then( resp => sub = resp.subscribe( a => console.log(a)));
+        } ).then( result => {
+            console.log( result );
+        } );
+        this.requestList = this.ids.reqRepos.getAll().publishReplay(1).refCount();
         
-        // World の Observable
-        this.worldObservable = this.profileObservable.flatMap( profile => this.census.getWorlds( [ profile.world.world_id ] ) )
-        .filter( worlds => ( worlds ) ? true : false )
-        .map( worlds => worlds[0] )
-        .publish()
-        .refCount(); 
-        
-        // OnlineStatus の Observable
-        this.onlineStatusObservable = this.profileObservable.flatMap( profile => this.census.getCharacterOnlineStatuses( [ profile.character_id ] ) )
-        .filter( onlineStatuses => ( onlineStatuses ) ? true : false )
-        .map( onlineStatuses => onlineStatuses[0] )
-        .publish()
-        .refCount();*/
+        this.profileMapObservable = this.requestList.flatMap( requests => {
+            let profileMap: { [key:string]: Census.CharacterProfile } = {};
+            let loadedPage: { [key:number]: boolean } = {};
+            let uniqueCids: { [key:string]: boolean } = {};
+            // 増える問題がある
+            return this.pageObservable.filter( ( page: number ) => !loadedPage[ page ] ).flatMap( page => {
+                loadedPage[ page ] = true;
+                return this.requestList.map( requests => {
+                    let offset = Math.floor( ( page * reqPerPage ) / maxBuffer ) * maxBuffer;
+                    let count = Math.min( maxBuffer, requests.length - offset );
+                    let cids: string[] = [];
+                    for( let i = 0; i < count; i++ ) {
+                        let tmp: string = requests[ i + offset ].cid;
+                        if( !uniqueCids[ tmp ] ) {
+                            cids.push( tmp );
+                            uniqueCids[ tmp ] = true;
+                        } else {
+                            console.log( tmp + ' is already loaded' );
+                        }
+                    }
+                    return cids;
+                } );
+            } )
+            .filter( cids => cids.length > 0 )
+            .flatMap( cids => this.census.getCharacterProfiles( cids ) )
+            .filter( profiles => !!profiles )
+            .map( profiles => {
+                for( let profile of profiles ) {
+                    profileMap[ profile.character_id ] = profile;
+                }
+                return profileMap;
+            } );
+        } );
+        */
     }
+    
+    
 }
