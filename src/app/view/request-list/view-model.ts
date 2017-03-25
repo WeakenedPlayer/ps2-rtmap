@@ -1,4 +1,4 @@
-import { Census, Identification, Comm } from '../../service';
+import { Census, Identification, Comm, DB } from '../../service';
 import { AngularFire, AngularFireAuth } from 'angularfire2';
 import { Observable, Subscription } from 'rxjs';
 
@@ -30,6 +30,16 @@ export class ViewModel {
                  private census: Census.Service,
                  private ids: Identification.Service,
                  private pageObservable: Observable<number> ){
+        let test = DB.Path.fromUrl( '/root/$rid/$cid/stage1' );
+        let test2 = test.move( DB.Path.fromUrl( 'state' ) );
+        let test3 = test.move( DB.Path.fromUrl( '/root' ) );
+        let test4 = test.move( DB.Path.fromUrl( '../../hi' ) );
+
+        console.log( test.toUrl() );
+        console.log( test2.toUrl() );
+        console.log( test3.toUrl() );
+        console.log( test4.toUrl() );
+        
         let comm: MyHandShake;
         this.ids.authStateObservable.take(1).toPromise().then( authState => {
             comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
