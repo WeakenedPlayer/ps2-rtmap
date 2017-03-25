@@ -23,8 +23,9 @@ export class ObjectMapper {
     }
     // --------------------------------------------------------------------------------------------
     // オブジェクトを元にパスを作成する
+    // 他のモジュールでも使えるよう公開
     // --------------------------------------------------------------------------------------------
-    private toPath( object: any ): string[] {
+    toPath( object?: any ): string[] {
         let parts: string[] = [].concat( this.urlParts );
 
         // console.log( parts );

@@ -1,3 +1,11 @@
+
+export class State {
+    constructor( public readonly result: boolean = false,
+                 public readonly blocked: boolean = false,
+                 public readonly finalized: boolean = false) {}
+}
+
+
 export class HandShakeData<TX,RX> {
     constructor( public readonly tx?: Message<TX>, 
                  public readonly rx?: Message<RX>,
@@ -12,8 +20,14 @@ export class Message<T> {
                  public readonly msg: T ) {}    
 }
 
-export class State {
-    constructor( public readonly result: boolean,
-                 public readonly blocked: boolean,
-                 public readonly finalized: boolean ) {}
+export class Path {
+    path: string[];
+    constructor( path: string ) {
+        let tmp = path.split( '/' );
+        for( let key in tmp ) {
+            if( key ) {
+                this.path.push( key );
+            }
+        }
+    }
 }

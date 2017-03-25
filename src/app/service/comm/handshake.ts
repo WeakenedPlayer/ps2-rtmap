@@ -9,8 +9,9 @@ import { Observable } from 'rxjs';
  * client
  * ################################################################################################################# */
 export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.HandShakeData<RECEPTION,CLIENT>> {
-    constructor( af:AngularFire, private rid: string, private cid: string, urlPrefix: string, urlSuffix: string ) {
-        super( af, urlPrefix + '/$rid/$cid' + urlSuffix );
+    constructor( af:AngularFire, private rid: string, private cid: string, urlPrefix: string = '', urlSuffix: string = '' ) {
+        super( af, urlPrefix + '/$rid/$cid/' + urlSuffix );
+        console.log( this.toPath( { rid: rid, cid: cid } ) );
     }
 
     // DB状のデータのデータの復元
@@ -73,7 +74,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
                     reject();
                 }
                 // 検証
-                result = this.validate( data );
+                result = this.conclude( data );
                 return this.updateDb( { rid: this.rid,
                                         cid: this.cid,
                                         result: result,

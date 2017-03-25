@@ -10,7 +10,7 @@ const reqPerPage = 2;
 
 class MyHandShake extends Comm.Handshake<string,string> {
     constructor( af: AngularFire, rid: string, cid: string ) {
-        super( af, rid, cid, '/root', '/stage1' );
+        super( af, rid, cid, 'root', 'stage1' );
     }
     
     protected conclude( data: Comm.HandShakeData<string,string> ): boolean {
@@ -32,11 +32,12 @@ export class ViewModel {
                  private pageObservable: Observable<number> ){
         let comm: MyHandShake;
         this.ids.authStateObservable.take(1).toPromise().then( authState => {
-            comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );    
+            comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+            
             console.log( 'initiate' );
             return comm.initiate( 'hi', true );
-        } )
-        .then( () => {
+            } )
+            .then( () => {
             return comm.respond( 'aaa' );
         } )
         .then( () => {

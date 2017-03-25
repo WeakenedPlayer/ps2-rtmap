@@ -20,6 +20,12 @@ export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     protected abstract db2obj( keys: any, values: any ): T;
 
     // --------------------------------------------------------------------------------------------
+    // 補助関数
+    // --------------------------------------------------------------------------------------------
+    toPath( keys?: any ): string[] {
+        return this.mapper.toPath( keys );
+    }
+    // --------------------------------------------------------------------------------------------
     // [C]RUD
     // オブジェクトを渡して、新しい値を作る(既存の場合は上書き)
     // --------------------------------------------------------------------------------------------
@@ -42,7 +48,7 @@ export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     // C[R]UD
     // キーとDBから取得した値を用いて読み出す
     // --------------------------------------------------------------------------------------------
-    getDb( keys: any ): Observable<T> {
+    getDb( keys?: any ): Observable<T> {
         // materialize を防ぐため、map は使わず、必要な処理を一つのObservableで実行する。
         // console.log( keys );
         return Observable.create( ( subscriber: Subscriber<T> ) => {
@@ -88,21 +94,21 @@ export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     // --------------------------------------------------------------------------------------------
     // オブジェクトを渡して、DBの値を一部上書きする(タイムスタンプを上書きから除外したい場合を想定)
     // --------------------------------------------------------------------------------------------
-    protected updateDb( obj: any ): Promise<void> {
+    protected updateDb( obj?: any ): Promise<void> {
         return this.mapper.update( obj );
     }
 
     // --------------------------------------------------------------------------------------------
     // キーを指定して、該当するオブジェクトを削除
     // --------------------------------------------------------------------------------------------
-    protected removeDb( keys: any ): Promise<void> {
+    protected removeDb( keys?: any ): Promise<void> {
         return this.mapper.remove( keys );
     }
     
     // --------------------------------------------------------------------------------------------
     // キーを指定して、該当するオブジェクト群を削除
     // --------------------------------------------------------------------------------------------
-    protected removeDbAll( keys: any ): Promise<void> {
+    protected removeDbAll( keys?: any ): Promise<void> {
         return this.mapper.removeAll( keys );
     }
 }
