@@ -14,7 +14,7 @@ class StateSnapshot {
  * 状態: 初期, ブロック, 完了
  * 値:　　 結果
  * ################################################################################################################# */
-export class sss extends DB.SimpleMapper<StateSnapshot> {
+export class State extends DB.SimpleMapper<StateSnapshot> {
     constructor( af:AngularFire, path: DB.Path ) {
         super( af, path );
     }
@@ -68,12 +68,12 @@ export class sss extends DB.SimpleMapper<StateSnapshot> {
     // DBの状態取得
     // --------------------------------------------------------------------------------------------
     // 修正:　DBがキーを作れるようにする… 
-    getState(): Observable<StateSnapshot> {
+    get(): Observable<StateSnapshot> {
         return this.getDb();
     }
     
-    getStateOnce(): Promise<StateSnapshot> {
-        return this.getState().take(1).toPromise();
+    getOnce(): Promise<StateSnapshot> {
+        return this.get().take(1).toPromise();
     }
 
     /* --------------------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ export class sss extends DB.SimpleMapper<StateSnapshot> {
     private execute( action: ( s: StateSnapshot ) => Promise<any> ): Promise<any> {
         return new Promise( ( resolve, reject ) => {
             this.blockDb( true ).then( () => {
-                return this.getStateOnce();
+                return this.getOnce();
             } ).then( ( state ) => {
                 // 初期化されていない場合（データがBlockedだけの場合）は削除してからReject
                 if( ( !state )  && !state.initialized ) {
@@ -106,7 +106,7 @@ export class sss extends DB.SimpleMapper<StateSnapshot> {
             return this.initializeDb();
         } else {
             return new Promise( ( resolve, reject ) => {
-                return this.getStateOnce().then( ( state ) => {
+                return this.getOnce().then( ( state ) => {
                     if( ( !state ) || ( !state.initialized ) ) {
                         return this.initializeDb().then( () => resolve() );
                     } else {
@@ -120,7 +120,7 @@ export class sss extends DB.SimpleMapper<StateSnapshot> {
     /* --------------------------------------------------------------------------------------------
      * 判定結果を保存する
      * ----------------------------------------------------------------------------------------- */
-    conclude( decision: Promise<boolean> ): Promise<void> {
+    conclude( decision: Promise<boolean> ): Promise<boolean> {
         let action = ( state ) => {
             return new Promise( ( resolve, reject ) => {
                 // 初期化されていない場合（データがBlockedだけの場合）は削除してからReject
@@ -129,7 +129,7 @@ export class sss extends DB.SimpleMapper<StateSnapshot> {
                 } else {
                     // 判定してよい場合は、判定し、最後にResolve
                     decision.then( ( result ) => {                    
-                        this.concludeDb( result ).then( () => resolve() );
+                        this.concludeDb( result ).then( () => resolve( result ) );
                     } );
                 }
             } );

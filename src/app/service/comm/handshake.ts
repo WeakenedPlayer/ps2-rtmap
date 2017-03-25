@@ -8,23 +8,24 @@ import { Observable } from 'rxjs';
  * reception
  * client
  * ################################################################################################################# */
-export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.HandShakeData<RECEPTION,CLIENT>> {
+export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.HandshakeSnapshot<RECEPTION,CLIENT>> {
+    state: Comm.State;
     constructor( af:AngularFire, path: DB.Path ) {
-        super( af, path );
+        super( af, path.move( DB.Path.fromUrl( 'm' ) ) );
+        this.state = new Comm.State( af, path.move( DB.Path.fromUrl( 's' ) ) );
     }
 
     // DB状のデータのデータの復元
-    protected db2obj( keys: any, values: any ): Comm.HandShakeData<RECEPTION,CLIENT> {
+    protected db2obj( keys: any, values: any ): Comm.HandshakeSnapshot<RECEPTION,CLIENT> {
         // r: reception
         // c: client
         let rm = ( values.r === undefined ) ? null : new Comm.Message<RECEPTION>( values.r.t, values.r.m );
         let cm = ( values.c === undefined ) ? null : new Comm.Message<CLIENT>( values.c.t, values.c.m );
-        let s  = new Comm.State( values.result, values.blocked, values.finalized );
-        return new Comm.HandShakeData<RECEPTION,CLIENT>( rm, cm, s );
+        return new Comm.HandshakeSnapshot<RECEPTION,CLIENT>( rm, cm );
     }
 
     // terminate の時に result をどうするか
-    protected abstract conclude( state: Comm.HandShakeData<RECEPTION,CLIENT> ): boolean;
+    protected abstract decide( snapshot: Comm.HandshakeSnapshot<RECEPTION,CLIENT> ): boolean;
     
     // --------------------------------------------------------------------------------------------
     // Reception methods
@@ -33,50 +34,26 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     delete(): Promise<void> {
         return this.removeDb(); 
     }
-
     // ハンドシェイクを開始する
     initiate( receptionMessage: RECEPTION, force: boolean = false ): Promise<void> {
-        // 応答は初期化される
-        return new Promise( ( resolve, reject ) => {
-            this.getStateOnce()
-            .then( data => {
-                if( !data || force || !data.state.finalized ) {
-                    return this.setDb( { r: { t: DB.TimeStamp, m: receptionMessage },
-                                         result: false,
-                                         blocked: false,
-                                         finalized: false }
-                    ).then( () => { resolve() } );
-                } else {
-                    reject();
-                }
-            } );
+        return this.state.initialize( force ).then( () => {
+            // この時点で書き込み可能になっている （そうでなければ reject されている) 
+            return this.setDb( { r: { t: DB.TimeStamp, m: receptionMessage } } );
         } );
     }
     
     // 応答をブロックしたうえで、判定結果を入力し、完了状態にする。
-    terminate(): Promise<boolean> {
-        return new Promise( ( resolve, reject ) => {
-            let result: boolean = false;
-            // 応答をブロック
-            return this.updateDb( { blocked: true } )
-            .then( () => {
-                // 最新の応答値を取得
-                return this.getState().take(1).toPromise();
-            } )
-            .then( ( data ) => {
-                if( ( !data ) || data.state.finalized ) {
-                    console.log( 'oops');
-                    reject();
+    terminate(): Promise<void> {
+        let decision = new Promise<boolean>( ( resolve, reject ) => {
+            this.getSnapshotOnce().then( snapshot => {
+                if( snapshot ) {
+                    resolve( this.decide( snapshot ) );
+                } else {
+                    reject( 'handshake does not exist.' );
                 }
-                // 検証
-                result = this.conclude( data );
-                return this.updateDb( { result: result,
-                                        blocked: true,
-                                        finalized: true } );
-            } ).then( () => {
-                resolve( result );
             } );
         } );
+        return this.state.conclude( decision );
     }
     
     // 完了状態と入力ブロックを解除し、再度判定できるようにする
@@ -98,11 +75,11 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // State
     // --------------------------------------------------------------------------------------------
     // メッセージと状態全て取得する
-    getState(): Observable<Comm.HandShakeData<RECEPTION,CLIENT>> {
+    getSnapshot(): Observable<Comm.HandshakeSnapshot<RECEPTION,CLIENT>> {
         return this.getDb();
     }
 
-    getStateOnce(): Promise<Comm.HandShakeData<RECEPTION,CLIENT>> {
-        return this.getState().take(1).toPromise();
+    getSnapshotOnce(): Promise<Comm.HandshakeSnapshot<RECEPTION,CLIENT>> {
+        return this.getSnapshot().take(1).toPromise();
     }
 }

@@ -23,7 +23,7 @@ export class RegisteredUserRepos extends DB.SimpleMapper<Identification.Register
     }
     
     update( uid: string ): Promise<void> {
-        console.log( uid );
+        // console.log( uid );
         return this.updateDb( { id: uid, updatedAt: DB.TimeStamp } );
     }
 }

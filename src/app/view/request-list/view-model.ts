@@ -13,10 +13,10 @@ class MyHandShake extends Comm.Handshake<string,string> {
         super( af, new DB.Path( [ 'refactor', 'handshake', rid, cid, 'stage1' ] ) );
     }
     
-    protected conclude( data: Comm.HandShakeData<string,string> ): boolean {
+    protected decide( snapshot: Comm.HandshakeSnapshot<string,string> ): boolean {
         // 送信と受信が同じならOK
-        console.log( data );
-        return data.rx.msg === data.tx.msg;
+        console.log( snapshot );
+        return snapshot.reception.message === snapshot.client.message;
     }
 }
 
@@ -34,8 +34,6 @@ export class ViewModel {
         let comm: MyHandShake;
         this.ids.authStateObservable.take(1).toPromise().then( authState => {
             comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
-        } );
-            /*    
             console.log( 'initiate' );
             return comm.initiate( 'hi', true );
         } )
