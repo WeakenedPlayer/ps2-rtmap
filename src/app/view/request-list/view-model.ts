@@ -13,7 +13,7 @@ class MyHandShake extends Comm.Handshake<string,string> {
         super( af, rid, cid, '/root', '/stage1' );
     }
     
-    protected validate( data: Comm.HandShakeData<string,string> ): boolean {
+    protected conclude( data: Comm.HandShakeData<string,string> ): boolean {
         // 送信と受信が同じならOK
         console.log( data );
         return data.rx.msg === data.tx.msg;
@@ -51,7 +51,7 @@ export class ViewModel {
         .then( (result) => {
             console.log( result );
             console.log( 'retry' );
-            return comm.undoTerminate();            
+            return comm.undoTerminate();
         } )
         .then( () => {
             return comm.respond( 'hi' );

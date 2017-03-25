@@ -23,10 +23,11 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
         return new Comm.HandShakeData<RECEPTION,CLIENT>( rm, cm, s );
     }
 
-    protected abstract validate( state: Comm.HandShakeData<RECEPTION,CLIENT> ): boolean;
+    // terminate の時に result をどうするか
+    protected abstract conclude( state: Comm.HandShakeData<RECEPTION,CLIENT> ): boolean;
     
     // --------------------------------------------------------------------------------------------
-    // TX側のメソッド
+    // Reception methods
     // --------------------------------------------------------------------------------------------
     // ハンドシェイクを削除する
     delete(): Promise<void> {
@@ -94,7 +95,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     }
 
     // --------------------------------------------------------------------------------------------
-    // RX側のメソッド
+    // Client methods
     // --------------------------------------------------------------------------------------------
     // 応答
     respond( clientMessage: CLIENT ): Promise<void> {
@@ -104,7 +105,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     }
 
     // --------------------------------------------------------------------------------------------
-    // 共通のメソッド
+    // State
     // --------------------------------------------------------------------------------------------
     // メッセージと状態全て取得する
     getState(): Observable<Comm.HandShakeData<RECEPTION,CLIENT>> {
@@ -112,6 +113,6 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     }
 
     getStateOnce(): Promise<Comm.HandShakeData<RECEPTION,CLIENT>> {
-        return this.getDb( { rid: this.rid, cid: this.cid } ).take(1).toPromise();
+        return this.getState().take(1).toPromise();
     }
 }
