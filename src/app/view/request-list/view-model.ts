@@ -39,14 +39,24 @@ export class ViewModel {
         } )
             .then( () => {
             return comm.respond( 'aaa' );
-        } )
-        .then( () => {
+        } ).then( () => {
             return comm.terminate();
-        } )
+        } ).then( result => {
+            console.log( result );
+            return comm.respond( 'hi' );
+        } ).then( () => {
+            return comm.undoTerminate();
+        } ).then( () => {
+            return comm.terminate();
+        } ).catch( ()=>{ console.log('failed') });
+        
+        /*
         .then( (result) => {
             console.log( result );
             return comm.respond( 'hi' );
         } ).then( () => {
+            return comm.terminate()
+.then( () => {
             return comm.terminate();
         } )
         .then( (result) => {
@@ -65,7 +75,7 @@ export class ViewModel {
         } )
         .catch( ()=>{ console.log('failed') });
         
-        /*
+        
         .then( a => {
             return comm.respond( '8PGAlqf37mU1jwzQ7t9UNllm73t1' );
         } )

@@ -58,9 +58,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     
     // 完了状態と入力ブロックを解除し、再度判定できるようにする
     undoTerminate(): Promise<void> {
-        return this.updateDb( { result: false,
-                                blocked: false,
-                                finalized: false } );
+        return this.state.revert();
     }
 
     // --------------------------------------------------------------------------------------------
