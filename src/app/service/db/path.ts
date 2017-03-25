@@ -20,7 +20,7 @@ export class Path {
     }
     
     /* --------------------------------------------------------------------------------------------
-     * コンストラクタ
+     * 生成・変換
      * ----------------------------------------------------------------------------------------- */
     constructor( private keys: string[] ) {
         this.keys.forEach( ( key, index ) => {
@@ -31,36 +31,13 @@ export class Path {
             }
         } );
     }
-    
-    /* --------------------------------------------------------------------------------------------
-     * url(文字列）に変換
-     * ----------------------------------------------------------------------------------------- */
-    toUrl( param?: any ): string {
-        let result: string = '';
-        if( this.paramIndex && param ) {
-            let tmp = this.keys.concat( [] );
 
-            for( let key in this.paramIndex ) {
-                if( param[ key ] ) {
-                    tmp[ this.paramIndex[ key ] ] = param[ key ];
-                }
-            }
-        } else {
-            result = this.keys.join( '/' );
-        }
-        return result;
-    } 
-
-    /* --------------------------------------------------------------------------------------------
-     * 複製
-     * ----------------------------------------------------------------------------------------- */
+    // 複製
     clone(): Path {
         return new Path( this.keys );
     }
-    
-    /* --------------------------------------------------------------------------------------------
-     * 連結（一つずつ）
-     * ----------------------------------------------------------------------------------------- */
+
+    // 連結
     move( path: Path ): Path {
         if( path.isAbsolute() ) {
             // absolute 
@@ -78,6 +55,60 @@ export class Path {
             
             // relative
             return new Path( tmp );
+        }
+    }
+
+    // 親ディレクトリ
+    getParent(): Path {
+        let tmp = this.clone();
+        let last = tmp.keys.pop();
+        
+        if( last[0] === '$' ) {
+            let body = last.substring( 1, last.length );
+            delete tmp.paramIndex[ body ];
+        }
+        
+        return tmp;
+    }
+    
+    /* --------------------------------------------------------------------------------------------
+     * url(文字列）に変換
+     * ----------------------------------------------------------------------------------------- */
+    toUrl( param?: any ): string {
+        let result: string = '';
+    
+        console.log( param );
+        if( this.paramIndex && param ) {
+            let tmp = this.keys.concat( [] );
+
+            for( let key in this.paramIndex ) {
+                if( param[ key ] ) {
+                    tmp[ this.paramIndex[ key ] ] = param[ key ];
+                }
+            }
+            result = tmp.join( '/' );
+        } else {
+            result = this.keys.join( '/' );
+        }
+        
+        console.log( result );
+        return result;
+    } 
+    
+    /* --------------------------------------------------------------------------------------------
+     * イテレータ
+     * ----------------------------------------------------------------------------------------- */
+    // ディレクトリごと
+    forEachDirectory( callback: ( key: string, index: number ) => void ): void {
+        this.keys.forEach( ( k, i ) => {
+            callback( k, i );
+        } );
+    }
+    
+    // パラメータごと
+    forEachParam( callback: ( param: string ) => void ): void {
+        for( let key in this.keys ) {
+            callback( key );
         }
     }
 }

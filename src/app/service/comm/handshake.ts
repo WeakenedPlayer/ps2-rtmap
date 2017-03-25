@@ -9,19 +9,16 @@ import { Observable } from 'rxjs';
  * client
  * ################################################################################################################# */
 export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.HandShakeData<RECEPTION,CLIENT>> {
-    constructor( af:AngularFire, private rid: string, private cid: string, urlPrefix: string = '', urlSuffix: string = '' ) {
-        super( af, urlPrefix + '/$rid/$cid/' + urlSuffix );
-        
-        let path = this.toPath( { rid: rid, cid: cid } ).join('/');
-        
+    constructor( af:AngularFire, path: DB.Path ) {
+        super( af, path );
     }
 
     // DB状のデータのデータの復元
     protected db2obj( keys: any, values: any ): Comm.HandShakeData<RECEPTION,CLIENT> {
         // r: reception
         // c: client
-        let rm = ( values.r === undefined ) ? null : new Comm.Message<RECEPTION>( keys.rid, values.r.t, values.r.m );
-        let cm = ( values.c === undefined ) ? null : new Comm.Message<CLIENT>( keys.cid, values.c.t, values.c.m );
+        let rm = ( values.r === undefined ) ? null : new Comm.Message<RECEPTION>( values.r.t, values.r.m );
+        let cm = ( values.c === undefined ) ? null : new Comm.Message<CLIENT>( values.c.t, values.c.m );
         let s  = new Comm.State( values.result, values.blocked, values.finalized );
         return new Comm.HandShakeData<RECEPTION,CLIENT>( rm, cm, s );
     }
@@ -34,7 +31,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // --------------------------------------------------------------------------------------------
     // ハンドシェイクを削除する
     delete(): Promise<void> {
-        return this.removeDb( { rid: this.rid, cid: this.cid } ); 
+        return this.removeDb(); 
     }
 
     // ハンドシェイクを開始する
@@ -44,9 +41,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
             this.getStateOnce()
             .then( data => {
                 if( !data || force || !data.state.finalized ) {
-                    return this.setDb( { rid: this.rid,
-                                         cid: this.cid,
-                                         r: { t: DB.TimeStamp, m: receptionMessage },
+                    return this.setDb( { r: { t: DB.TimeStamp, m: receptionMessage },
                                          result: false,
                                          blocked: false,
                                          finalized: false }
@@ -63,9 +58,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
         return new Promise( ( resolve, reject ) => {
             let result: boolean = false;
             // 応答をブロック
-            return this.updateDb( { rid: this.rid,
-                                    cid: this.cid,
-                                    blocked: true } )
+            return this.updateDb( { blocked: true } )
             .then( () => {
                 // 最新の応答値を取得
                 return this.getState().take(1).toPromise();
@@ -77,9 +70,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
                 }
                 // 検証
                 result = this.conclude( data );
-                return this.updateDb( { rid: this.rid,
-                                        cid: this.cid,
-                                        result: result,
+                return this.updateDb( { result: result,
                                         blocked: true,
                                         finalized: true } );
             } ).then( () => {
@@ -90,9 +81,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     
     // 完了状態と入力ブロックを解除し、再度判定できるようにする
     undoTerminate(): Promise<void> {
-        return this.updateDb( { rid: this.rid,
-                                cid: this.cid,
-                                result: false,
+        return this.updateDb( { result: false,
                                 blocked: false,
                                 finalized: false } );
     }
@@ -102,9 +91,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // --------------------------------------------------------------------------------------------
     // 応答
     respond( clientMessage: CLIENT ): Promise<void> {
-        return this.updateDb( { rid: this.rid,
-                                cid: this.cid,
-                                c: { t: DB.TimeStamp, m: clientMessage } } );
+        return this.updateDb( { c: { t: DB.TimeStamp, m: clientMessage } } );
     }
 
     // --------------------------------------------------------------------------------------------
@@ -112,7 +99,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // --------------------------------------------------------------------------------------------
     // メッセージと状態全て取得する
     getState(): Observable<Comm.HandShakeData<RECEPTION,CLIENT>> {
-        return this.getDb( { rid: this.rid, cid: this.cid } );
+        return this.getDb();
     }
 
     getStateOnce(): Promise<Comm.HandShakeData<RECEPTION,CLIENT>> {

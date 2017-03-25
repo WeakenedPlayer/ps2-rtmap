@@ -10,10 +10,10 @@ import { Observable, Subscriber } from 'rxjs';
  * ################################################################################################################# */
 export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     private mapper: DB.ObjectMapper = null;
-    constructor( af: AngularFire, url: string ) {
-        this.mapper = new DB.ObjectMapper( af, url );
+    constructor( af: AngularFire, path: DB.Path ) {
+        this.mapper = new DB.ObjectMapper( af, path );
     }
-    
+
     // --------------------------------------------------------------------------------------------
     // キーとDBから取得した値を用いて値を復元する
     // --------------------------------------------------------------------------------------------
@@ -22,9 +22,10 @@ export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     // --------------------------------------------------------------------------------------------
     // 補助関数
     // --------------------------------------------------------------------------------------------
-    toPath( keys?: any ): string[] {
-        return this.mapper.toPath( keys );
+    getUrl( param?: any ): string {
+        return this.mapper.getUrl( param ); 
     }
+    
     // --------------------------------------------------------------------------------------------
     // [C]RUD
     // オブジェクトを渡して、新しい値を作る(既存の場合は上書き)
@@ -71,7 +72,7 @@ export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     // --------------------------------------------------------------------------------------------
     // C[R]UD
     // --------------------------------------------------------------------------------------------
-    getAllDb( keys ?: any ): Observable<T[]>  {
+    getAllDb( keys?: any ): Observable<T[]>  {
         // materialize を防ぐため、map は使わず、必要な処理を一つのObservableで実行する。
         return Observable.create( ( subscriber: Subscriber<T[]> ) => {
             let subscription = this.mapper.getAll( keys ).subscribe( ( dbData ) => {
@@ -95,6 +96,7 @@ export abstract class SimpleMapper<T> implements DB.Mapper<T> {
     // オブジェクトを渡して、DBの値を一部上書きする(タイムスタンプを上書きから除外したい場合を想定)
     // --------------------------------------------------------------------------------------------
     protected updateDb( obj?: any ): Promise<void> {
+        // console.log( obj );
         return this.mapper.update( obj );
     }
 

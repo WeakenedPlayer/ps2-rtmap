@@ -3,8 +3,8 @@ import { AngularFire  } from 'angularfire2';
 import { Observable } from 'rxjs';
 
 export class RequestRepos extends DB.SimpleMapper<Identification.Request> {
-    constructor( af:AngularFire, base: string ) {
-        super( af, base + 'req/$uid' );
+    constructor( af:AngularFire, prefix: DB.Path ) {
+        super( af,  prefix.move( DB.Path.fromUrl( 'reg/$id' ) ) );
     }
     
     protected db2obj( keys: any, values: any ): Identification.Request {

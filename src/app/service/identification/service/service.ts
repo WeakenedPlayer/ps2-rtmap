@@ -3,9 +3,9 @@ import { Headers, Http } from '@angular/http';
 import { Observable } from 'rxjs';
 import { AngularFire, AngularFireAuth, FirebaseAuthState } from 'angularfire2';
 
-import { Identification } from '../';
-const root = '/ids/';
+import { Identification, DB } from '../../';
 
+const rootUrl = '/ids';
 @Injectable()
 export class Service {
     currentUserObservable: Observable<Identification.RegisteredUser>;
@@ -16,6 +16,7 @@ export class Service {
 
     constructor( private af: AngularFire ) {
         // 大きくないので実体を作ってしまう
+        let root = DB.Path.fromUrl( rootUrl );
         this.userRepos = new Identification.RegisteredUserRepos( this.af, root );
         this.reqRepos = new Identification.RequestRepos( this.af, root );
 
@@ -39,8 +40,8 @@ export class Service {
             .flatMap( authState => { 
                 // 1回だけUIDの更新 or 登録を行う
                 return this.userRepos.getById( authState.auth.uid ).take(1).do( user => {
-                    // console.log( user );
                     if( user ) {
+                        // console.log( user.id );
                         this.userRepos.update( user.id );
                     } else {
                         this.userRepos.register( authState.auth.uid );

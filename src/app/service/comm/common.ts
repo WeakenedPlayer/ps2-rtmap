@@ -21,7 +21,6 @@ export class HandShakeData<TX,RX> {
 }
 
 export class Message<T> {
-    constructor( public readonly id: string,
-                 public readonly t: number,
+    constructor( public readonly t: number,
                  public readonly msg: T ) {}    
 }

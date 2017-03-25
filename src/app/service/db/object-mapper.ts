@@ -9,57 +9,37 @@ import { DB } from './index';
  * 格納対象をキーと本体に分解
  * ################################################################################################################# */
 export class ObjectMapper {
-    urlParts: string[] = [];
-    urlIndex: { [key:string]: number } = {};
-    constructor( private af: AngularFire, url: string ) {
-        // $から始まる場合はパラメータとして扱う。
-        this.urlParts = url.split( '/' );
-        this.urlParts.forEach( ( part, index ) => {
-            if( part[0] === '$' ) {
-                let body = part.substring( 1, part.length );
-                this.urlIndex[ body ] = index;
-            }
-        } );
-    }
-    // --------------------------------------------------------------------------------------------
-    // オブジェクトを元にパスを作成する
-    // 他のモジュールでも使えるよう公開
-    // --------------------------------------------------------------------------------------------
-    toPath( object?: any ): string[] {
-        let parts: string[] = [].concat( this.urlParts );
-        // console.log( parts );
-    
-        // パラメータを置き換える。不足している場合はFirebaseがエラーを返す(不正なURLと認識)
-        if( object ) {
-            for( let key in this.urlIndex ) {
-                if( object[ key ] ) {
-                    parts[ this.urlIndex[ key ] ] = object[ key ];
-                }
-            }
-        }
-        return parts;
-    }
+    constructor( private af: AngularFire, private path: DB.Path ) {}
+
     // --------------------------------------------------------------------------------------------
     // オブジェクトを元にDBに格納するオブジェクトを作成する
     // --------------------------------------------------------------------------------------------
     private toDbObject( object: any ): any {
         let newObject = Object.assign( Object.create( object ), object );
         
-        for( let key in this.urlIndex ) {
+        this.path.forEachParam( ( key ) => {
             delete newObject[ key ];
-        }
+        } );
         
         return newObject;
     }
-
+    // --------------------------------------------------------------------------------------------
+    // 補助関数
+    // --------------------------------------------------------------------------------------------
+    getUrl( param?: any ): string {
+        return this.path.toUrl( param ); 
+    }
+    
     // --------------------------------------------------------------------------------------------
     // オブジェクトを取得する
     // complete を発行しないので、利用者が止めること。
     // --------------------------------------------------------------------------------------------
-    get( keys: any = {} ): Observable<DB.DbData> {
+    get( keys?: any ): Observable<DB.DbData> {
         return Observable.create( ( subscriber: Subscriber<DB.DbData>　) => {
-            let parts = this.toPath( keys );
-            let observable = this.af.database.object( parts.join( '/' ) );
+            let url = this.path.toUrl( keys );
+            // console.log( keys );
+            // console.log( url );
+            let observable = this.af.database.object( url );
             let subscription = observable.subscribe( data => {
                 subscriber.next( new DB.DbData( keys, data ) );
             },
@@ -72,12 +52,11 @@ export class ObjectMapper {
     // --------------------------------------------------------------------------------------------
     // オブジェクトを取得する(同階層すべて)
     // --------------------------------------------------------------------------------------------
-
-    getAll( keys: any = {} ): Observable<DB.DbData> {
+    getAll( keys?: any ): Observable<DB.DbData> {
         return Observable.create( ( subscriber: Subscriber<DB.DbData> ) => {
-            let parts = this.toPath( keys );
-            parts.pop();
-            let observable = this.af.database.list( parts.join( '/' ) ) as Observable<any[]>;
+            let url = this.path.getParent().toUrl( keys );
+            
+            let observable = this.af.database.list( url ) as Observable<any[]>;
             let subscription = observable.subscribe( data => {
                 subscriber.next( new DB.DbData( keys, data) );
             },
@@ -92,11 +71,10 @@ export class ObjectMapper {
     // オブジェクトを格納する
     // --------------------------------------------------------------------------------------------
     set( object: any ): Promise<void> {
-        let keys = this.toPath( object );
         let dbObject = this.toDbObject( object );
 
         // console.log( dbObject );
-        let ref = this.af.database.object( keys.join( '/' ) );
+        let ref = this.af.database.object( this.path.toUrl( object ) );
         return new Promise( ( resolve ) => {
             ref.set( dbObject ).then( ()=>{ resolve(); } );
         } );
@@ -106,10 +84,11 @@ export class ObjectMapper {
     // オブジェクトを更新する
     // --------------------------------------------------------------------------------------------
     update( object: any ): Promise<void> {
-        let keys = this.toPath( object );
+        // console.log( object );
+        // console.log( this.path.toUrl() );
         let dbObject = this.toDbObject( object );
 
-        let ref = this.af.database.object( keys.join( '/' ) );
+        let ref = this.af.database.object( this.path.toUrl( object ) );
         return new Promise( ( resolve ) => {
             ref.update( dbObject ).then( ()=>{ resolve(); } );
         } );
@@ -119,11 +98,9 @@ export class ObjectMapper {
     // オブジェクトを追加(IDは自動付与)する
     // --------------------------------------------------------------------------------------------
     push( object: any ): Promise<any> {
-        let keys = this.toPath( object );
         let dbObject = this.toDbObject( object );
-        keys.pop();
 
-        let ref = this.af.database.list( keys.join( '/' ) );
+        let ref = this.af.database.list( this.path.getParent().toUrl( object ) );
         return new Promise( ( resolve ) => {
             ref.push( dbObject ).then( ( result )=>{ resolve( result ); } );
         } );
@@ -132,10 +109,9 @@ export class ObjectMapper {
     // --------------------------------------------------------------------------------------------
     // オブジェクトを削除する
     // --------------------------------------------------------------------------------------------
-    remove( keys: any = {} ): Promise<void> {
-        let parts = this.toPath( keys );
+    remove( keys?: any ): Promise<void> {
         return new Promise( (resolve) => {
-            this.af.database.object( parts.join( '/' ) ).remove().then( ()=>{
+            this.af.database.object( this.path.toUrl( keys) ).remove().then( ()=>{
                 resolve();
             } );
         } );
@@ -145,12 +121,9 @@ export class ObjectMapper {
     // オブジェクトを削除する(URLの末端(通常はID)の階層を)
     // TODO: さらに上の階層で削除がいる場合は想定していなかったが、必要なら作ること。
     // --------------------------------------------------------------------------------------------
-    removeAll( keys: any = {} ): Promise<void> {
-        let parts = this.toPath( keys );
-        parts.pop();
-        
+    removeAll( keys?: any ): Promise<void> {
         return new Promise( (resolve) => {
-            this.af.database.object( parts.join( '/' ) ).remove().then( ()=>{
+            this.af.database.object( this.path.getParent().toUrl( keys ) ).remove().then( ()=>{
                 resolve();
             } );
         } );

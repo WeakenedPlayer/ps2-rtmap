@@ -32,21 +32,14 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     private dbSubscription: { [key: string]: DbSubscription } = {};
     private mapper: DB.ObjectMapper = null;
 
-    constructor( af: AngularFire, url: string ) {
-        this.mapper = new DB.ObjectMapper( af, url );
+    constructor( af: AngularFire, path: DB.Path ) {
+        this.mapper = new DB.ObjectMapper( af, path );
     }
     
     // --------------------------------------------------------------------------------------------
     // キーとDBから取得した値を用いて値を復元する
     // --------------------------------------------------------------------------------------------
     protected abstract db2obj( keys: any, values: any, children ): T;
-    
-    // --------------------------------------------------------------------------------------------
-    // 補助関数
-    // --------------------------------------------------------------------------------------------
-    toPath( keys?: any ): string[] {
-        return this.mapper.toPath( keys );
-    }
     
     // --------------------------------------------------------------------------------------------
     // サブクラスで子要素を追加する
@@ -158,7 +151,7 @@ export abstract class CompositeMapper<T> implements DB.Mapper<T> {
     // --------------------------------------------------------------------------------------------
     // キーを指定して、該当するオブジェクトを削除
     // --------------------------------------------------------------------------------------------
-    protected removeDb( keys: any ): Promise<void> {
+    protected removeDb( keys?: any ): Promise<void> {
         return this.mapper.remove( keys );
     }
 }

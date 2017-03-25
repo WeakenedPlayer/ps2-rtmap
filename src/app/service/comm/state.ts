@@ -15,8 +15,8 @@ class StateSnapshot {
  * 値:　　 結果
  * ################################################################################################################# */
 export class sss extends DB.SimpleMapper<StateSnapshot> {
-    constructor( af:AngularFire, url: string ) {
-        super( af, url );
+    constructor( af:AngularFire, path: DB.Path ) {
+        super( af, path );
     }
 
     // --------------------------------------------------------------------------------------------
