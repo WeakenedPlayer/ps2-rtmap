@@ -11,7 +11,9 @@ import { Observable } from 'rxjs';
 export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.HandShakeData<RECEPTION,CLIENT>> {
     constructor( af:AngularFire, private rid: string, private cid: string, urlPrefix: string = '', urlSuffix: string = '' ) {
         super( af, urlPrefix + '/$rid/$cid/' + urlSuffix );
-        console.log( this.toPath( { rid: rid, cid: cid } ) );
+        
+        let path = this.toPath( { rid: rid, cid: cid } ).join('/');
+        
     }
 
     // DB状のデータのデータの復元

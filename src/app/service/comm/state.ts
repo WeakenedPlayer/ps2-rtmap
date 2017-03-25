@@ -14,7 +14,7 @@ class StateSnapshot {
  * 状態: 初期, ブロック, 完了
  * 値:　　 結果
  * ################################################################################################################# */
-export class States extends DB.SimpleMapper<StateSnapshot> {
+export class sss extends DB.SimpleMapper<StateSnapshot> {
     constructor( af:AngularFire, url: string ) {
         super( af, url );
     }

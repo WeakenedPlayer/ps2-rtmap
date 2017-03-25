@@ -27,7 +27,6 @@ export class ObjectMapper {
     // --------------------------------------------------------------------------------------------
     toPath( object?: any ): string[] {
         let parts: string[] = [].concat( this.urlParts );
-
         // console.log( parts );
     
         // パラメータを置き換える。不足している場合はFirebaseがエラーを返す(不正なURLと認識)
