@@ -9,8 +9,8 @@ const maxBuffer = 3;
 const reqPerPage = 2;
 
 class MyHandShake extends Comm.Handshake<string,string> {
-    constructor( af: AngularFire, uid: string ) {
-        super( af, uid, '/root', '/stage1' );
+    constructor( af: AngularFire, rid: string, cid: string ) {
+        super( af, rid, cid, '/root', '/stage1' );
     }
     
     protected validate( data: Comm.HandShakeData<string,string> ): boolean {
@@ -32,32 +32,32 @@ export class ViewModel {
                  private pageObservable: Observable<number> ){
         let comm: MyHandShake;
         this.ids.authStateObservable.take(1).toPromise().then( authState => {
-            comm = new MyHandShake( this.af, authState.uid );    
+            comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );    
             console.log( 'initiate' );
-            return comm.initiate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hi', true );
+            return comm.initiate( 'hi', true );
         } )
         .then( () => {
-            return comm.respond( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'aaa' );
+            return comm.respond( 'aaa' );
         } )
         .then( () => {
-            return comm.terminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+            return comm.terminate();
         } )
         .then( (result) => {
             console.log( result );
-            return comm.respond( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hi' );
+            return comm.respond( 'hi' );
         } ).then( () => {
-            return comm.terminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+            return comm.terminate();
         } )
         .then( (result) => {
             console.log( result );
             console.log( 'retry' );
-            return comm.undoTerminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );            
+            return comm.undoTerminate();            
         } )
         .then( () => {
-            return comm.respond( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'hi' );
+            return comm.respond( 'hi' );
         } )
         .then( () => {
-            return comm.terminate( 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+            return comm.terminate();
         } )
         .then( (result) => {
             console.log( result );
