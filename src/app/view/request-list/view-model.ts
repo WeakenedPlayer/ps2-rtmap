@@ -20,6 +20,9 @@ class MyHandShake extends Comm.Handshake<string,string> {
     }
 }
 
+
+const waitTime = 1000;
+
 export class ViewModel {
     // Censusで検索する情報
     requestList: Observable<Identification.Request[]>;
@@ -35,20 +38,26 @@ export class ViewModel {
         this.ids.authStateObservable.take(1).toPromise().then( authState => {
             comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
             console.log( 'initiate' );
-            return comm.initiate( 'hi', true );
-        } )
-            .then( () => {
-            return comm.respond( 'aaa' );
-        } ).then( () => {
-            return comm.terminate();
-        } ).then( result => {
-            console.log( result );
+            return comm.delete();
+        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+            comm.initiate( 'hi', true );
+        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+            console.log( 'wrong answer' );
             return comm.respond( 'hi' );
-        } ).then( () => {
+        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+            console.log( 'terminate' );
+            return comm.terminate();
+        } ).then( () => { return Comm.wait(waitTime) } ).then( result => {
+            console.log( 'response will be blocked' );
+            return comm.respond( 'hi' );
+        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+            console.log( 'undo' );
             return comm.undoTerminate();
-        } ).then( () => {
+        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+            console.log( 'retry' );
             return comm.terminate();
         } ).catch( ()=>{ console.log('failed') });
+        
         
         /*
         .then( (result) => {

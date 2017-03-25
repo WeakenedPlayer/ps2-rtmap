@@ -23,3 +23,10 @@ export class Message<T> {
     constructor( public readonly timestamp: number,
                  public readonly message: T ) {}    
 }
+
+
+export function wait( timeout: number ) {
+    return new Promise<void>( (resolve) => {
+        setTimeout( ()=>{ resolve() }, timeout );
+    } ); 
+}

@@ -77,11 +77,10 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
     }
 
     /* --------------------------------------------------------------------------------------------
-     * 定型操作
-     * block をセットしてから操作を行う。
-     * block の解除が必要なら、データベースの更新時に行う
+     * Reception: 操作
+     * Clientの操作をブロックしてから行う
      * ----------------------------------------------------------------------------------------- */
-    private execute( action: ( s: StateSnapshot ) => Promise<any> ): Promise<any> {
+    private receptionDo( action: ( s: StateSnapshot ) => Promise<any> ): Promise<any> {
         return new Promise( ( resolve, reject ) => {
             this.blockDb( true ).then( () => {
                 return this.getOnce();
@@ -96,9 +95,9 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
             } );
         } );
     }
-    
+
     /* --------------------------------------------------------------------------------------------
-     * DBの初期化
+     * Reception: DBの初期化
      * 既に存在する場合、強制上書きを指定しないと初期化できない
      * ----------------------------------------------------------------------------------------- */
     initialize( force: boolean = false ): Promise<void> {
@@ -118,7 +117,7 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
     }
     
     /* --------------------------------------------------------------------------------------------
-     * 判定結果を保存する
+     * Reception: 判定結果を保存する
      * ----------------------------------------------------------------------------------------- */
     conclude( decision: Promise<boolean> ): Promise<boolean> {
         let action = ( state ) => {
@@ -135,11 +134,11 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
             } );
         };
         
-        return this.execute( action );
+        return this.receptionDo( action );
     }
 
     /* --------------------------------------------------------------------------------------------
-     * 状態を判定前に戻す
+     * Reception: 状態を判定前に戻す
      * ----------------------------------------------------------------------------------------- */
     revert(): Promise<void> {
         let action = ( state ) => {
@@ -153,7 +152,30 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
             } );
         };
         
-        return this.execute( action );
+        return this.receptionDo( action );
+    }
+
+    /* --------------------------------------------------------------------------------------------
+     * Reception: 無条件で削除する
+     * ----------------------------------------------------------------------------------------- */
+    delete(): Promise<void> {
+        return this.deleteDb();
+    }
+
+    /* --------------------------------------------------------------------------------------------
+     * Client/Reception: 操作
+     * ブロックされていなければ実施
+     * ----------------------------------------------------------------------------------------- */
+    doUnlessBlocked(): Promise<any> {
+        return new Promise( ( resolve, reject ) => {
+            this.getOnce().then( state => {
+                if( !state.blocked ) {
+                    resolve();
+                } else {
+                    reject( 'blocked' );
+                }
+            } );
+        } );
     }
 }
 

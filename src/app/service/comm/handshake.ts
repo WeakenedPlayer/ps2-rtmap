@@ -32,7 +32,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // --------------------------------------------------------------------------------------------
     // ハンドシェイクを削除する
     delete(): Promise<void> {
-        return this.removeDb(); 
+        return this.state.delete().then( () => { this.removeDb() } ); 
     }
     // ハンドシェイクを開始する
     initiate( receptionMessage: RECEPTION, force: boolean = false ): Promise<void> {
@@ -64,13 +64,14 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // --------------------------------------------------------------------------------------------
     // Client methods
     // --------------------------------------------------------------------------------------------
-    // 応答
     respond( clientMessage: CLIENT ): Promise<void> {
-        return this.updateDb( { c: { t: DB.TimeStamp, m: clientMessage } } );
+        return this.state.doUnlessBlocked().then( () => {
+           return this.updateDb( { c: { t: DB.TimeStamp, m: clientMessage } } ); 
+        } );
     }
 
     // --------------------------------------------------------------------------------------------
-    // State
+    // Snapshot
     // --------------------------------------------------------------------------------------------
     // メッセージと状態全て取得する
     getSnapshot(): Observable<Comm.HandshakeSnapshot<RECEPTION,CLIENT>> {
