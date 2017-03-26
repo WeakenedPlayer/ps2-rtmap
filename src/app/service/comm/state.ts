@@ -85,8 +85,8 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
             // console.log( 'State: start force initialize' );
             return this.initializeDb();
         }
-        return this.checkIfInitialized().then( isInitialized => {
-            if( isInitialized ) {
+        return this.getOnce().then( state => {
+            if( state && state.finalized ) {
                 return Promise.reject( 'Unable to initialize.' );
             }
             return this.initializeDb();

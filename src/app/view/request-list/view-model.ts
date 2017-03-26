@@ -12,7 +12,7 @@ import { HandshakeTest } from '../../test';
 const maxBuffer = 3;
 const reqPerPage = 2;
 
-class MyHandShake extends Comm.Handshake<string,string> {
+class HandshakeStage1 extends Comm.Handshake<string,string> {
     constructor( af: AngularFire, rid: string, cid: string ) {
         super( af, new DB.Path( [ 'refactor', 'handshake', rid, cid, 'stage1' ] ) );
     }
@@ -22,12 +22,50 @@ class MyHandShake extends Comm.Handshake<string,string> {
         if( snapshot && snapshot.reception && snapshot.client ) {
             return snapshot.reception.message === snapshot.client.message;
         } else {
-            // console.log( snapshot );
             return false;
         }
     }
 }
-
+class HandshakeStage2 extends Comm.Handshake<string,string> {
+    constructor( af: AngularFire, rid: string, cid: string ) {
+        super( af, new DB.Path( [ 'refactor', 'handshake', rid, cid, 'stage2' ] ) );
+    }
+    
+    protected decide( snapshot: Comm.HandshakeSnapshot<string,string> ): boolean {
+        // 送信と受信が同じならOK
+        if( snapshot && snapshot.reception && snapshot.client ) {
+            return snapshot.reception.message === snapshot.client.message;
+        } else {
+            return false;
+        }
+    }
+}
+class HandshakeStage3 extends Comm.Handshake<string,string> {
+    constructor( af: AngularFire, rid: string, cid: string ) {
+        super( af, new DB.Path( [ 'refactor', 'handshake', rid, cid, 'stage3' ] ) );
+    }
+    
+    protected decide( snapshot: Comm.HandshakeSnapshot<string,string> ): boolean {
+        // 送信と受信が同じならOK
+        if( snapshot && snapshot.reception && snapshot.client ) {
+            return snapshot.reception.message === snapshot.client.message;
+        } else {
+            return false;
+        }
+    }
+}
+//
+//class MySession extends Comm.Session {
+//    hs: MyHandShake;
+//    constructor( af: AngularFire, rid: string, cid: string ) {
+//        super( af, new DB.Path( [ 'refactor', 'session', rid, cid, 'state' ] ) );
+//        this.hs = new MyHandShake( af, rid, cid );  
+//    }
+//    
+//    protected initializeFirstHandshake(): Promise<void> {
+//        return this.hs.initialize( 'test', true );
+//    }
+//}
 
 const waitTime = 1000;
 const nowait = 10;
@@ -42,9 +80,16 @@ export class ViewModel {
                  private census: Census.Service,
                  private ids: Identification.Service,
                  private pageObservable: Observable<number> ){
-        let test = new HandshakeTest.Test( af );
-        test.check( 'hello','hi');
         
+        let hs1 = new HandshakeStage1( af, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+        let hs2 = new HandshakeStage2( af, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+        let hs3 = new HandshakeStage3( af, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
+        hs1.initialize( 'Hello', true );
+        hs2.initialize( 'Hello' );
+        hs3.initialize( 'Hello' );
+        
+//        let test = new HandshakeTest.Test( af );
+//        test.check( 'hello','hi');
         
         /*http://p-baleine.hatenablog.com/entry/2014/03/14/085536
 //        } ).then( () => { return Comm.wait(nowait) } ).then( () => {

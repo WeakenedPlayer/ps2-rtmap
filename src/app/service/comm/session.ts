@@ -9,14 +9,14 @@ import { Observable } from 'rxjs';
 export abstract class Session {
     state: Comm.State;
     currentHandshake: Comm.Handshake<any,any>;
-    log: Comm.Handshake<any,any>[];
+    log: Comm.Handshake<any,any>[] = [];
 
     constructor(　private af:AngularFire, private path: DB.Path ) {
         this.state = new Comm.State( af, path.move( DB.Path.fromUrl( 's' ) ) );
     }
 
     // terminate の時に result をどうするか
-    protected abstract initiateFirstHandshake(): Comm.Handshake<any,any>;
+    protected abstract initializeFirstHandshake(): Promise<void>;
 
     /* --------------------------------------------------------------------------------------------
      * 削除
@@ -54,7 +54,7 @@ export abstract class Session {
             // この時点で書き込み可能になっている （そうでなければ reject されている) 
             return this.deleteHandshakes();
         } ).then( () => {
-            this.proceedHandshake( this.initiateFirstHandshake() );
+            this.proceedHandshake( this.initializeFirstHandshake() );
         } );
     }
     /* --------------------------------------------------------------------------------------------
