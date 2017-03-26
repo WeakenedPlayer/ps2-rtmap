@@ -3,7 +3,9 @@ import { AngularFire, AngularFireAuth } from 'angularfire2';
 import { Observable, Subscription } from 'rxjs';
 
 /* ####################################################################################################################
- * 
+ * 受付 出題する
+ * 要求 ゲームを通して回答する
+ * 連絡: 一致していたら登録確認、不一致ならリトライ確認
  * ################################################################################################################# */
 const maxBuffer = 3;
 const reqPerPage = 2;
@@ -40,23 +42,14 @@ export class ViewModel {
             console.log( 'initiate' );
             return comm.delete();
         } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
-            comm.initiate( 'hi', true );
+            comm.initialize( 'hi', true );
         } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
-            console.log( 'wrong answer' );
+            console.log( 'correct answer' );
             return comm.respond( 'hi' );
         } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
             console.log( 'terminate' );
             return comm.terminate();
-        } ).then( () => { return Comm.wait(waitTime) } ).then( result => {
-            console.log( 'response will be blocked' );
-            return comm.respond( 'hi' );
-        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
-            console.log( 'undo' );
-            return comm.undoTerminate();
-        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
-            console.log( 'retry' );
-            return comm.terminate();
-        } ).catch( ()=>{ console.log('failed') });
+        } );
         
         
         /*

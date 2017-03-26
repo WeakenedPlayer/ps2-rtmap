@@ -35,7 +35,7 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
         return this.state.delete().then( () => { this.removeDb() } ); 
     }
     // ハンドシェイクを開始する
-    initiate( receptionMessage: RECEPTION, force: boolean = false ): Promise<void> {
+    initialize( receptionMessage: RECEPTION, force: boolean = false ): Promise<void> {
         return this.state.initialize( force ).then( () => {
             // この時点で書き込み可能になっている （そうでなければ reject されている) 
             return this.setDb( { r: { t: DB.TimeStamp, m: receptionMessage } } );
@@ -46,11 +46,10 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     terminate(): Promise<void> {
         let decision = new Promise<boolean>( ( resolve, reject ) => {
             this.getSnapshotOnce().then( snapshot => {
-                if( snapshot ) {
-                    resolve( this.decide( snapshot ) );
-                } else {
+                if( !snapshot ) {
                     reject( 'handshake does not exist.' );
                 }
+                resolve( this.decide( snapshot ) );
             } );
         } );
         return this.state.conclude( decision );
@@ -65,8 +64,11 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // Client methods
     // --------------------------------------------------------------------------------------------
     respond( clientMessage: CLIENT ): Promise<void> {
-        return this.state.doUnlessBlocked().then( () => {
-           return this.updateDb( { c: { t: DB.TimeStamp, m: clientMessage } } ); 
+        return this.state.checkIfBlocked().then( blocked => {
+            if( blocked ) {
+                Promise.reject( 'cannot respond' );
+            }
+            return this.updateDb( { c: { t: DB.TimeStamp, m: clientMessage } } ); 
         } );
     }
 

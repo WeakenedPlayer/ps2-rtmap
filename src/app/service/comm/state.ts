@@ -75,24 +75,58 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
     getOnce(): Promise<StateSnapshot> {
         return this.get().take(1).toPromise();
     }
+    
+    /* --------------------------------------------------------------------------------------------
+     * 状態の判定
+     * ----------------------------------------------------------------------------------------- */
+    private check( decision: ( state: StateSnapshot ) => boolean ) {
+        return this.getOnce().then( state => {
+            // stateが存在し、判定結果が真かどうか
+            return Promise.resolve( decision( state ) );
+        } );
+    }
+    // 存在するか
+    checkIfExists(): Promise<boolean> {
+        return this.check( state => (state) ? true : false );
+    }
+    
+    // 初期化されているか
+    checkIfInitialized(): Promise<boolean> {
+        return this.check( state => ( state && state.initialized ) );
+    }
+    
+    // ブロックされているか
+    checkIfBlocked(): Promise<boolean> {
+        return this.check( state => state && state.blocked );
+    }
 
+    // 完了しているか
+    checkIfFinalized(): Promise<boolean> {
+        return this.check( state => state && state.finalized );
+    }
+
+    // 成功しているか
+    checkIfSuccess(): Promise<boolean> {
+        return this.check( state => ( state && state.finalized && state.result ) );
+    }
+    
     /* --------------------------------------------------------------------------------------------
      * Reception: 操作
      * Clientの操作をブロックしてから行う
+     * 後段で、必要ならブロックを解除する
      * ----------------------------------------------------------------------------------------- */
-    private receptionDo( action: ( s: StateSnapshot ) => Promise<any> ): Promise<any> {
-        return new Promise( ( resolve, reject ) => {
-            this.blockDb( true ).then( () => {
-                return this.getOnce();
-            } ).then( ( state ) => {
-                // 初期化されていない場合（データがBlockedだけの場合）は削除してからReject
-                if( ( !state )  && !state.initialized ) {
-                    this.deleteDb().then( () => reject( 'Cannot execute action: Data does no exists.' ) );   
-                }
-
-                // 実行可能なら実行する
-                action( state ).then( ( result ) => resolve( result ) );
-            } );
+    private blockAndDo(): Promise<StateSnapshot> {
+        return this.blockDb( true ).then( () => {
+            return this.getOnce();
+        } ).then( state => {
+            if( !state || !state.initialized ) {
+                // 存在しないデータへの操作のため削除の上Reject
+                this.delete().then( () => {
+                    Promise.reject( 'Data does no exists.' );
+                } );
+            }
+            // 次の工程に進む
+            return Promise.resolve( state );
         } );
     }
 
@@ -104,14 +138,12 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
         if( force ) {
             return this.initializeDb();
         } else {
-            return new Promise( ( resolve, reject ) => {
-                return this.getOnce().then( ( state ) => {
-                    if( ( !state ) || ( !state.initialized ) ) {
-                        return this.initializeDb().then( () => resolve() );
-                    } else {
-                        reject( 'Cannot re-initialize existing State.' );
-                    }
-                } );
+            return this.checkIfInitialized().then( isInitialized => {
+                if( isInitialized ) {
+                    return Promise.reject( 'Cannot re-initialize existing State.' );
+                } else {
+                    return this.initializeDb();
+                }
             } );
         }
     }
@@ -120,39 +152,28 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
      * Reception: 判定結果を保存する
      * ----------------------------------------------------------------------------------------- */
     conclude( decision: Promise<boolean> ): Promise<boolean> {
-        let action = ( state ) => {
-            return new Promise( ( resolve, reject ) => {
-                // 初期化されていない場合（データがBlockedだけの場合）は削除してからReject
-                if( state.finalized  ) {
-                    reject();
-                } else {
-                    // 判定してよい場合は、判定し、最後にResolve
-                    decision.then( ( result ) => {                    
-                        this.concludeDb( result ).then( () => resolve( result ) );
-                    } );
-                }
-            } );
-        };
-        
-        return this.receptionDo( action );
+        return this.blockAndDo().then( state => {
+            if( state.finalized  ) {
+                Promise.reject( 'Handshake has already been terminated.' );
+            }
+            // 判定してよい場合は、判定する
+            return decision;
+        } ).then( result => {
+            // 結果を格納し、終わったら結果をPromiseで渡す
+            return this.concludeDb( result ).then( ()=> Promise.resolve( result ) );
+        } );
     }
 
     /* --------------------------------------------------------------------------------------------
      * Reception: 状態を判定前に戻す
      * ----------------------------------------------------------------------------------------- */
     revert(): Promise<void> {
-        let action = ( state ) => {
-            return new Promise( ( resolve, reject ) => {
-                // 初期化されていない場合（データがBlockedだけの場合）は削除してからReject
-                if( !state.finalized  ) {
-                    reject();
-                } else {
-                    this.undoDb().then( () => resolve() );
-                }
-            } );
-        };
-        
-        return this.receptionDo( action );
+        return this.blockAndDo().then( state => {
+            if( !state.finalized  ) {
+                Promise.reject( 'Handshake is not finished.' );
+            }
+            return this.undoDb();
+        } );
     }
 
     /* --------------------------------------------------------------------------------------------
@@ -160,22 +181,6 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
      * ----------------------------------------------------------------------------------------- */
     delete(): Promise<void> {
         return this.deleteDb();
-    }
-
-    /* --------------------------------------------------------------------------------------------
-     * Client/Reception: 操作
-     * ブロックされていなければ実施
-     * ----------------------------------------------------------------------------------------- */
-    doUnlessBlocked(): Promise<any> {
-        return new Promise( ( resolve, reject ) => {
-            this.getOnce().then( state => {
-                if( !state.blocked ) {
-                    resolve();
-                } else {
-                    reject( 'blocked' );
-                }
-            } );
-        } );
     }
 }
 
