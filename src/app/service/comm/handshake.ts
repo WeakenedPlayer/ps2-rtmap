@@ -36,21 +36,28 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     }
     // ハンドシェイクを開始する
     initialize( receptionMessage: RECEPTION, force: boolean = false ): Promise<void> {
+        // console.log('Handshake: start initializing');
         return this.state.initialize( force ).then( () => {
             // この時点で書き込み可能になっている （そうでなければ reject されている) 
+            // console.log('Handshake: initializing...');
             return this.setDb( { r: { t: DB.TimeStamp, m: receptionMessage } } );
         } );
     }
     
     // 応答をブロックしたうえで、判定結果を入力し、完了状態にする。
     terminate(): Promise<void> {
-        console.log( 'terminate start');
+        // console.log( 'Handshake: Start terminating...' );
         return this.state.conclude( ()=>{
-            console.log( 'promise start');
+            // console.log( 'Handshake: Start checking snapshot' );
             return this.getSnapshotOnce().then( snapshot => {
+                // console.log( 'Handshake: Checking snapshot' );
                 if( !snapshot ) {
                     return Promise.reject( 'handshake does not exist.' );
                 }
+                if( !snapshot.client ) {
+                    return Promise.reject( 'no response' );
+                }
+                // console.log( 'terminating...' );
                 return Promise.resolve( this.decide( snapshot ) );
             } );
         } );
@@ -65,10 +72,12 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     // Client methods
     // --------------------------------------------------------------------------------------------
     respond( clientMessage: CLIENT ): Promise<void> {
+        // console.log( 'start responding...' );
         return this.state.checkIfBlocked().then( blocked => {
             if( blocked ) {
-                Promise.reject( 'cannot respond' );
+                return Promise.reject( 'Unable to respond' );
             }
+            // console.log( 'responding...' );
             return this.updateDb( { c: { t: DB.TimeStamp, m: clientMessage } } ); 
         } );
     }

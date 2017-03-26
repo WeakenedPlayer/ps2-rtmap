@@ -2,6 +2,8 @@ import { Census, Identification, Comm, DB } from '../../service';
 import { AngularFire, AngularFireAuth } from 'angularfire2';
 import { Observable, Subscription } from 'rxjs';
 
+import { CommTest } from '../../test';
+
 /* ####################################################################################################################
  * 受付 出題する
  * 要求 ゲームを通して回答する
@@ -20,7 +22,7 @@ class MyHandShake extends Comm.Handshake<string,string> {
         if( snapshot && snapshot.reception && snapshot.client ) {
             return snapshot.reception.message === snapshot.client.message;
         } else {
-            console.log( snapshot );
+            // console.log( snapshot );
             return false;
         }
     }
@@ -28,7 +30,7 @@ class MyHandShake extends Comm.Handshake<string,string> {
 
 
 const waitTime = 1000;
-const nowait = 100;
+const nowait = 10;
 
 export class ViewModel {
     // Censusで検索する情報
@@ -40,27 +42,14 @@ export class ViewModel {
                  private census: Census.Service,
                  private ids: Identification.Service,
                  private pageObservable: Observable<number> ){
-        
-        let comm: MyHandShake;
-        this.ids.authStateObservable.take(1).toPromise().then( authState => {
-            comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
-            console.log( 'initiate' );
-            return comm.delete();
-        } ).then( () => { return Comm.wait(nowait) } ).then( () => {
-            comm.initialize( 'hi', true );
-        } ).then( () => { return Comm.wait(nowait) } ).then( () => {
-            console.log( 'correct answer' );
-            return comm.respond( 'hi' );
-        } ).then( () => { return Comm.wait(nowait) } ).then( () => {
-            console.log( 'delete!!' );
-            return comm.delete();
-        } ).then( () => { return Comm.wait(waitTime) }).then( () => {
-            console.log( 'terminate' );
-            return comm.terminate();
-        } ).catch( reason => console.log( reason ) );
+        let test = new CommTest.CommCheck( af );
+        test.check( 'hello','hi');
         
         
         /*http://p-baleine.hatenablog.com/entry/2014/03/14/085536
+//        } ).then( () => { return Comm.wait(nowait) } ).then( () => {
+//            console.log( 'delete!!' );
+//            return comm.delete();
         .then( (result) => {
             console.log( result );
             return comm.respond( 'hi' );
