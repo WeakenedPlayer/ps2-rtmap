@@ -7,17 +7,20 @@
 </div>
 <div class="row">
   <div class="panel panel-default ui-info-box">
-    <div class="panel-heading">Request List</div>
     <table class="table table-nonfluid"> 
       <thead>
         <tr>
-          <td>UID</td>
-          <td>キャラクタID</td>
+          <td>World</td>
+          <td>Faction</td>
+          <td>Outfit</td>
+          <td>Name</td>
       </thead>
       <tbody>
         <tr *ngFor="let request of requestList; trackBy: requestToUid">
-          <td>{{request.uid}}</td>
-          <td>{{request.cid}}</td>
+          <td>{{worldOf(request.cid)}}</td>
+          <td>{{factionOf(request.cid)}}</td>
+          <td>{{outfitOf(request.cid)}}</td>
+          <td>{{nameOf(request.cid)}}</td>
         </tr>
       </tbody>
     </table>

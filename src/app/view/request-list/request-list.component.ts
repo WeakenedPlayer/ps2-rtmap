@@ -43,10 +43,46 @@ export class RequestListComponent implements OnInit, OnDestroy {
     ngOnInit() {
         let pageObservable = this.route.params.map( ( params: Params ) =>  params['page'] );
         this.vm = new VM.ViewModel( this.af, this.census, this.ids, pageObservable );
-        this.subscription.add( this.vm.requestList.subscribe( requests => {
-            this.requestList = requests;
-            console.log( requests);
-        } ) );
+        this.subscription.add( this.vm.visibleRequestsObservable.subscribe( requests => this.requestList = requests ));
+        this.subscription.add( this.vm.profileMapObservable.subscribe());
+        this.subscription.add( this.vm.worldMapObservable.subscribe());
+    }
+
+    nameOf( cid: string ): string {
+        if( this.vm.profileMap[ cid ] ) {
+            return this.vm.profileMap[ cid ].name.first;
+        } else {
+            return 'n/a';
+        }
+    }
+    
+    factionOf( cid: string ): string {
+        if( this.vm.profileMap[ cid ] ) {
+            return this.vm.profileMap[ cid ].faction.code_tag;
+        } else {
+            return 'n/a';
+        }
+    }
+
+    outfitOf( cid: string ): string {
+        if( this.vm.profileMap[ cid ] && this.vm.profileMap[ cid ].outfit ) {
+            return this.vm.profileMap[ cid ].outfit.alias;
+        } else {
+            return 'n/a';
+        }
+    }
+    
+    worldOf( cid: string ): string {
+        let profile = this.vm.profileMap[ cid ];
+        
+        if( profile ) {
+            let world = this.vm.worldMap[ profile.world.world_id ];
+            if( world ) {
+                return world.name.en;
+            }
+        } else {
+            return 'n/a';
+        }
     }
     
     ngOnDestroy() {

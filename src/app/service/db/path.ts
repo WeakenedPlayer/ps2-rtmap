@@ -77,7 +77,7 @@ export class Path {
     toUrl( param?: any ): string {
         let result: string = '';
     
-        console.log( param );
+        // console.log( param );
         if( this.paramIndex && param ) {
             let tmp = this.keys.concat( [] );
 
@@ -91,7 +91,7 @@ export class Path {
             result = this.keys.join( '/' );
         }
         
-        console.log( result );
+        // console.log( result );
         return result;
     } 
     
