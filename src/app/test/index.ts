@@ -1,3 +1,3 @@
-import * as CommTest from './comm';
-export { CommTest };
+import * as HandshakeTest from './handshake-test';
+export { HandshakeTest };
 

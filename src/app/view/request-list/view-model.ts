@@ -2,7 +2,7 @@ import { Census, Identification, Comm, DB } from '../../service';
 import { AngularFire, AngularFireAuth } from 'angularfire2';
 import { Observable, Subscription } from 'rxjs';
 
-import { CommTest } from '../../test';
+import { HandshakeTest } from '../../test';
 
 /* ####################################################################################################################
  * 受付 出題する
@@ -42,7 +42,7 @@ export class ViewModel {
                  private census: Census.Service,
                  private ids: Identification.Service,
                  private pageObservable: Observable<number> ){
-        let test = new CommTest.CommCheck( af );
+        let test = new HandshakeTest.Test( af );
         test.check( 'hello','hi');
         
         

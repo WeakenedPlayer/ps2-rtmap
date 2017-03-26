@@ -18,9 +18,8 @@ class TestHandShake extends Comm.Handshake<string,string> {
     }
 }
 
-export class CommCheck {
+export class Test {
     constructor( private af: AngularFire ) {}
-    
     check( correctAnswer: string, wrongAnswer: string ) {
         let comm = new TestHandShake( this.af, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2', 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
 
