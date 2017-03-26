@@ -44,15 +44,16 @@ export abstract class Handshake<RECEPTION,CLIENT> extends DB.SimpleMapper<Comm.H
     
     // 応答をブロックしたうえで、判定結果を入力し、完了状態にする。
     terminate(): Promise<void> {
-        let decision = new Promise<boolean>( ( resolve, reject ) => {
-            this.getSnapshotOnce().then( snapshot => {
+        console.log( 'terminate start');
+        return this.state.conclude( ()=>{
+            console.log( 'promise start');
+            return this.getSnapshotOnce().then( snapshot => {
                 if( !snapshot ) {
-                    reject( 'handshake does not exist.' );
+                    return Promise.reject( 'handshake does not exist.' );
                 }
-                resolve( this.decide( snapshot ) );
+                return Promise.resolve( this.decide( snapshot ) );
             } );
         } );
-        return this.state.conclude( decision );
     }
     
     // 完了状態と入力ブロックを解除し、再度判定できるようにする

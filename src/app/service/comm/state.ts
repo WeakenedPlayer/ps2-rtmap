@@ -97,9 +97,9 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
      * ----------------------------------------------------------------------------------------- */
     private check( decision: ( state: StateSnapshot ) => boolean ) {
         return this.getOnce().then( state => {
-            // stateが存在し、判定結果が真かどうか
+            // stateが存在しなければ中断する
             if( !state ) {
-                return Promise.reject( 'data does not exist.');
+                return Promise.reject( 'State does not exist.');
             }
             return Promise.resolve( decision( state ) );
         } );
@@ -135,24 +135,28 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
         } ).then( state => {
             if( !state || !state.initialized ) {
                 // 存在しないデータへの操作のため削除の上Reject
-                // this.delete();
+                // 
                 return Promise.reject( 'Data does no exists.' );
             }
             // 次の工程に進む
             return Promise.resolve( state );
+        }, ()=>{
+            console.log( 'deleted' );
+            this.delete();
         } );
     }
     
     /* --------------------------------------------------------------------------------------------
      * Reception: 判定結果を保存する
      * ----------------------------------------------------------------------------------------- */
-    conclude( decision: Promise<boolean> ): Promise<boolean> {
+    conclude( decision: () => Promise<boolean> ): Promise<boolean> {
         return this.blockAndDo().then( state => {
+            console.log( 'to conclude');
             if( state.finalized  ) {
                 return Promise.reject( 'Handshake has already been terminated.' );
             }
             // 判定してよい場合は、判定する
-            return decision;
+            return decision();
         } ).then( result => {
             // 結果を格納し、終わったら結果をPromiseで渡す
             return this.concludeDb( result ).then( ()=> Promise.resolve( result ) );

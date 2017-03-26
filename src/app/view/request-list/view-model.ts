@@ -17,13 +17,18 @@ class MyHandShake extends Comm.Handshake<string,string> {
     
     protected decide( snapshot: Comm.HandshakeSnapshot<string,string> ): boolean {
         // 送信と受信が同じならOK
-        console.log( snapshot );
-        return snapshot.reception.message === snapshot.client.message;
+        if( snapshot && snapshot.reception && snapshot.client ) {
+            return snapshot.reception.message === snapshot.client.message;
+        } else {
+            console.log( snapshot );
+            return false;
+        }
     }
 }
 
 
-const waitTime = 1000;
+const waitTime = 3000;
+const nowait = 100;
 
 export class ViewModel {
     // Censusで検索する情報
@@ -41,14 +46,14 @@ export class ViewModel {
             comm = new MyHandShake( this.af, authState.uid, 'sPOD5jUfXfO7k4DdwNFLoq0MpKu2' );
             console.log( 'initiate' );
             return comm.delete();
-        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+        } ).then( () => { return Comm.wait(nowait) } ).then( () => {
             comm.initialize( 'hi', true );
-        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
-            console.log( 'delete!!' );
-            return comm.delete();           
-        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+        } ).then( () => { return Comm.wait(nowait) } ).then( () => {
             console.log( 'correct answer' );
             return comm.respond( 'hi' );
+        } ).then( () => { return Comm.wait(nowait) } ).then( () => {
+            console.log( 'delete!!' );
+            return comm.delete();
         } ).then( () => { return Comm.wait(waitTime) }).then( () => {
             console.log( 'terminate' );
             return comm.terminate();
