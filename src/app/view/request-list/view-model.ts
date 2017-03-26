@@ -44,15 +44,18 @@ export class ViewModel {
         } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
             comm.initialize( 'hi', true );
         } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+            console.log( 'delete!!' );
+            return comm.delete();           
+        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
             console.log( 'correct answer' );
             return comm.respond( 'hi' );
-        } ).then( () => { return Comm.wait(waitTime) } ).then( () => {
+        } ).then( () => { return Comm.wait(waitTime) }).then( () => {
             console.log( 'terminate' );
             return comm.terminate();
-        } );
+        } ).catch( reason => console.log( reason ) );
         
         
-        /*
+        /*http://p-baleine.hatenablog.com/entry/2014/03/14/085536
         .then( (result) => {
             console.log( result );
             return comm.respond( 'hi' );

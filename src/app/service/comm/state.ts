@@ -75,6 +75,22 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
     getOnce(): Promise<StateSnapshot> {
         return this.get().take(1).toPromise();
     }
+
+    /* --------------------------------------------------------------------------------------------
+     * Reception: DBの初期化
+     * 既に存在する場合、強制上書きを指定しないと初期化できない
+     * ----------------------------------------------------------------------------------------- */
+    initialize( force: boolean = false ): Promise<void> {
+        if( force ) {
+            return this.initializeDb();
+        }
+        return this.checkIfInitialized().then( isInitialized => {
+            if( isInitialized ) {
+                return Promise.reject( 'Cannot re-initialize existing State.' );
+            }
+            return this.initializeDb();
+        } );
+    }
     
     /* --------------------------------------------------------------------------------------------
      * 状態の判定
@@ -82,34 +98,32 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
     private check( decision: ( state: StateSnapshot ) => boolean ) {
         return this.getOnce().then( state => {
             // stateが存在し、判定結果が真かどうか
+            if( !state ) {
+                return Promise.reject( 'data does not exist.');
+            }
             return Promise.resolve( decision( state ) );
         } );
     }
-    // 存在するか
-    checkIfExists(): Promise<boolean> {
-        return this.check( state => (state) ? true : false );
-    }
-    
     // 初期化されているか
     checkIfInitialized(): Promise<boolean> {
-        return this.check( state => ( state && state.initialized ) );
+        return this.check( state =>  state.initialized );
     }
     
     // ブロックされているか
     checkIfBlocked(): Promise<boolean> {
-        return this.check( state => state && state.blocked );
+        return this.check( state => state.blocked );
     }
 
     // 完了しているか
     checkIfFinalized(): Promise<boolean> {
-        return this.check( state => state && state.finalized );
+        return this.check( state => state.finalized );
     }
 
     // 成功しているか
     checkIfSuccess(): Promise<boolean> {
-        return this.check( state => ( state && state.finalized && state.result ) );
+        return this.check( state => ( state.finalized && state.result ) );
     }
-    
+
     /* --------------------------------------------------------------------------------------------
      * Reception: 操作
      * Clientの操作をブロックしてから行う
@@ -121,31 +135,12 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
         } ).then( state => {
             if( !state || !state.initialized ) {
                 // 存在しないデータへの操作のため削除の上Reject
-                this.delete().then( () => {
-                    Promise.reject( 'Data does no exists.' );
-                } );
+                // this.delete();
+                return Promise.reject( 'Data does no exists.' );
             }
             // 次の工程に進む
             return Promise.resolve( state );
         } );
-    }
-
-    /* --------------------------------------------------------------------------------------------
-     * Reception: DBの初期化
-     * 既に存在する場合、強制上書きを指定しないと初期化できない
-     * ----------------------------------------------------------------------------------------- */
-    initialize( force: boolean = false ): Promise<void> {
-        if( force ) {
-            return this.initializeDb();
-        } else {
-            return this.checkIfInitialized().then( isInitialized => {
-                if( isInitialized ) {
-                    return Promise.reject( 'Cannot re-initialize existing State.' );
-                } else {
-                    return this.initializeDb();
-                }
-            } );
-        }
     }
     
     /* --------------------------------------------------------------------------------------------
@@ -154,7 +149,7 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
     conclude( decision: Promise<boolean> ): Promise<boolean> {
         return this.blockAndDo().then( state => {
             if( state.finalized  ) {
-                Promise.reject( 'Handshake has already been terminated.' );
+                return Promise.reject( 'Handshake has already been terminated.' );
             }
             // 判定してよい場合は、判定する
             return decision;
@@ -170,7 +165,7 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
     revert(): Promise<void> {
         return this.blockAndDo().then( state => {
             if( !state.finalized  ) {
-                Promise.reject( 'Handshake is not finished.' );
+                return Promise.reject( 'Handshake is not finished.' );
             }
             return this.undoDb();
         } );
