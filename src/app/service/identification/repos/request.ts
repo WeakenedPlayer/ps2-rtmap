@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export class RequestRepos extends DB.SimpleMapper<Identification.Request> {
     constructor( af:AngularFire, prefix: DB.Path ) {
-        super( af,  prefix.move( DB.Path.fromUrl( 'reg/$id' ) ) );
+        super( af,  prefix.move( DB.Path.fromUrl( 'req/$id' ) ) );
     }
     
     protected db2obj( keys: any, values: any ): Identification.Request {
@@ -12,19 +12,19 @@ export class RequestRepos extends DB.SimpleMapper<Identification.Request> {
     }
 
     getById( uid: string ): Observable<Identification.Request> {
-        return this.getDb( { uid: uid } );
+        return this.getDb( { id: uid } );
     }
     
     register( uid: string, cid: string ): Promise<void> {
-        return this.setDb( { uid: uid, cid: cid, updatedAt: DB.TimeStamp } );
+        return this.setDb( { id: uid, cid: cid, updatedAt: DB.TimeStamp } );
     }
     
     update( uid: string ): Promise<void> {
-        return this.updateDb( { uid: uid, updatedAt: DB.TimeStamp } );
+        return this.updateDb( { id: uid, updatedAt: DB.TimeStamp } );
     }
     
     remove( uid: string): Promise<void> {
-        return this.removeDb( { uid: uid } );
+        return this.removeDb( { id: uid } );
     }
     
     getAll(): Observable<Identification.Request[]> {

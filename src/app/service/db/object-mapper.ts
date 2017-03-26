@@ -73,7 +73,7 @@ export class ObjectMapper {
     set( object: any ): Promise<void> {
         let dbObject = this.toDbObject( object );
 
-        // console.log( dbObject );
+        console.log( dbObject );
         let ref = this.af.database.object( this.path.toUrl( object ) );
         return new Promise( ( resolve ) => {
             ref.set( dbObject ).then( ()=>{ resolve(); } );

@@ -5,6 +5,21 @@
     <span class="glyphicon glyphicon-remove ui-toolbar-btn" (click)="clear()"></span>
   </div>
 </div>
-<div class="list-group ui-toolbar-list">
+<div class="row">
+  <div class="panel panel-default ui-info-box">
+    <div class="panel-heading">Request List</div>
+    <table class="table table-nonfluid"> 
+      <thead>
+        <tr>
+          <td>UID</td>
+          <td>キャラクタID</td>
+      </thead>
+      <tbody>
+        <tr *ngFor="let request of requestList; trackBy: requestToUid">
+          <td>{{request.uid}}</td>
+          <td>{{request.cid}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
-{{page}}

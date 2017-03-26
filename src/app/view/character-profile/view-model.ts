@@ -42,7 +42,8 @@ export class ViewModel {
         .refCount();
     }
     
-    createRequest( uid: string, cid: string ) {
-        this.ids.reqRepos.register( uid, cid );
+    createRequest( uid: string, cid: string ): Promise<void> {
+        console.log( uid, cid );
+        return this.ids.reqRepos.register( uid, cid );
     }
 }

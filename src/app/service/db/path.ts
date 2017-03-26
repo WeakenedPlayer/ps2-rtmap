@@ -77,7 +77,7 @@ export class Path {
     toUrl( param?: any ): string {
         let result: string = '';
     
-        // console.log( param );
+        console.log( param );
         if( this.paramIndex && param ) {
             let tmp = this.keys.concat( [] );
 
@@ -91,7 +91,7 @@ export class Path {
             result = this.keys.join( '/' );
         }
         
-        // console.log( result );
+        console.log( result );
         return result;
     } 
     
@@ -107,8 +107,11 @@ export class Path {
     
     // パラメータごと
     forEachParam( callback: ( param: string ) => void ): void {
-        for( let key in this.keys ) {
-            callback( key );
+        for( let key of this.keys ) {
+            if( key[0] ==='$' ) {
+                let body = key.substring( 1, key.length );
+                callback( body );
+            }
         }
     }
 }

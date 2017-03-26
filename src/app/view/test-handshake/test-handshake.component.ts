@@ -16,11 +16,11 @@ import { Census, Identification } from '../../service';
 import * as VM from './view-model';
 
 @Component({
-  selector: 'app-request-list',
-  templateUrl: './request-list.component.html',
-  styleUrls: ['./request-list.component.scss']
+  selector: 'app-test-handshake',
+  templateUrl: './test-handshake.component.html',
+  styleUrls: ['./test-handshake.component.scss']
 })
-export class RequestListComponent implements OnInit, OnDestroy {
+export class TestHandshakeComponent implements OnInit, OnDestroy {
     vm: VM.ViewModel;
 
     // binding
@@ -41,19 +41,9 @@ export class RequestListComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        let pageObservable = this.route.params.map( ( params: Params ) =>  params['page'] );
-        this.vm = new VM.ViewModel( this.af, this.census, this.ids, pageObservable );
-        this.subscription.add( this.vm.requestList.subscribe( requests => {
-            this.requestList = requests;
-            console.log( requests);
-        } ) );
     }
     
     ngOnDestroy() {
         this.subscription.unsubscribe();
-    }
-    
-    requestToUid( req: Identification.Request ) {
-        return req.uid;
     }
 }

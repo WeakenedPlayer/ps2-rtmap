@@ -8,6 +8,7 @@ import { CharacterProfileComponent } from './character-profile/character-profile
 import { LandingComponent } from './landing/landing.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { RequestListComponent } from './request-list/request-list.component';
+import { TestHandshakeComponent } from './test-handshake/test-handshake.component';
 
 // このモジュールは、Routerで各ビューをつなぐ役割をになう
 // より複雑になってきたら、forRootを外部に持ち、ここではforChildだけつくることにする。
@@ -19,17 +20,29 @@ import { RequestListComponent } from './request-list/request-list.component';
 const routes: Routes = [
                         { path: 'landing',  component: LandingComponent },
                         { path: 'request/list/:page',  component: RequestListComponent },
+                        { path: 'handhsake',  component: TestHandshakeComponent },
                         { path: 'character/search',  component: CharacterSearchComponent },
                         { path: 'character/show/:id', component: CharacterProfileComponent },
                         { path: '',   redirectTo: '/landing', pathMatch: 'full' },
                         { path: '**', component: NotFoundComponent }
                       ];
 @NgModule({
-  declarations: [ CharacterSearchComponent, CharacterProfileComponent, LandingComponent, NotFoundComponent, RequestListComponent ],
+  declarations: [ CharacterSearchComponent, 
+                  CharacterProfileComponent, 
+                  LandingComponent, 
+                  NotFoundComponent, 
+                  RequestListComponent,
+                  TestHandshakeComponent ],
   imports: [ BrowserModule,
              ReactiveFormsModule,
              RouterModule.forRoot(routes)],
-  exports: [ RouterModule, CharacterSearchComponent, CharacterProfileComponent, LandingComponent, NotFoundComponent ],
+  exports: [ RouterModule, 
+             CharacterSearchComponent, 
+             CharacterProfileComponent, 
+             LandingComponent, 
+             NotFoundComponent, 
+             RequestListComponent,
+             TestHandshakeComponent ],
   providers: [ {provide: LocationStrategy, useClass: HashLocationStrategy} ]
 })
 export class ViewModule { }
