@@ -27,7 +27,7 @@ class MyHandShake extends Comm.Handshake<string,string> {
 }
 
 
-const waitTime = 3000;
+const waitTime = 1000;
 const nowait = 100;
 
 export class ViewModel {

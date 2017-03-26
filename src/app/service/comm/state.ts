@@ -129,20 +129,16 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
      * Clientの操作をブロックしてから行う
      * 後段で、必要ならブロックを解除する
      * ----------------------------------------------------------------------------------------- */
-    private blockAndDo(): Promise<StateSnapshot> {
+    private blockAndDo( action: ( StateSnapshot )=>Promise<any> ): Promise<any> {
         return this.blockDb( true ).then( () => {
             return this.getOnce();
         } ).then( state => {
             if( !state || !state.initialized ) {
                 // 存在しないデータへの操作のため削除の上Reject
-                // 
-                return Promise.reject( 'Data does no exists.' );
+                return this.delete().then( () => Promise.reject( 'Data does no exist.' ) );
             }
             // 次の工程に進む
-            return Promise.resolve( state );
-        }, ()=>{
-            console.log( 'deleted' );
-            this.delete();
+            return action( state );
         } );
     }
     
@@ -150,8 +146,7 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
      * Reception: 判定結果を保存する
      * ----------------------------------------------------------------------------------------- */
     conclude( decision: () => Promise<boolean> ): Promise<boolean> {
-        return this.blockAndDo().then( state => {
-            console.log( 'to conclude');
+        return this.blockAndDo( state => {
             if( state.finalized  ) {
                 return Promise.reject( 'Handshake has already been terminated.' );
             }
@@ -167,7 +162,7 @@ export class State extends DB.SimpleMapper<StateSnapshot> {
      * Reception: 状態を判定前に戻す
      * ----------------------------------------------------------------------------------------- */
     revert(): Promise<void> {
-        return this.blockAndDo().then( state => {
+        return this.blockAndDo( state => {
             if( !state.finalized  ) {
                 return Promise.reject( 'Handshake is not finished.' );
             }
